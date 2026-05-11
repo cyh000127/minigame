@@ -1,0 +1,10 @@
+services:
+  quoridor:
+    build:
+      context: .
+    container_name: quoridor
+    environment:
+      PORT: ${QUORIDOR_PORT:-10002}
+      CLIENT_ORIGIN: ${QUORIDOR_CLIENT_ORIGIN:-http://localhost:10002}
+    ports:
+      - "${QUORIDOR_PORT:-10002}:${QUORIDOR_PORT:-10002}"

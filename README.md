@@ -7,6 +7,7 @@
 - 게임은 `games/<game-name>/` 아래에 하나씩 만든다.
 - 각 게임은 다른 게임 디렉토리의 코드를 읽거나 import하지 않는다.
 - 게임별 소스, 에셋, 테스트, 실행 문서는 해당 게임 디렉토리 안에 둔다.
+- 코드 구현은 TypeScript로 진행한다.
 - 공통 유틸, 공통 컴포넌트, 공유 에셋 디렉토리는 만들지 않는다.
 - 루트에는 저장소 운영 문서와 전체 설정만 둔다.
 
@@ -17,6 +18,7 @@ minigame/
   games/
     game-name/
       README.md
+      package.json
       src/
       assets/
       tests/
@@ -29,3 +31,7 @@ minigame/
 
 - [개발 가이드](docs/development-guide.md)
 - [커밋 컨벤션](docs/commit-convention.md)
+
+## 게임
+
+- [Quoridor](games/quoridor/README.md)
