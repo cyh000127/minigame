@@ -34,13 +34,17 @@ button:hover {
   background: #ffce57;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .game-shell {
   display: grid;
-  width: min(100%, 620px);
+  width: min(100%, 680px);
   min-height: 100vh;
   margin: 0 auto;
   padding: 18px 14px;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 12px;
 }
 
@@ -173,6 +177,95 @@ button:hover {
   color: #c5bea3;
 }
 
+.initials-form {
+  display: grid;
+  width: min(100%, 300px);
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.initials-form label {
+  color: #d45b43;
+  font-weight: 900;
+}
+
+.initials-form input {
+  width: 100%;
+  min-height: 42px;
+  border: 3px solid #f6f1dc;
+  padding: 0 10px;
+  background: #171717;
+  color: #f6f1dc;
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.initials-form button {
+  grid-column: 1 / -1;
+}
+
+.initials-form button:disabled {
+  background: #4b4b4b;
+  color: #9d9782;
+  cursor: default;
+}
+
+.save-state {
+  min-height: 1.1em;
+  color: #ffce57;
+  font-weight: 900;
+}
+
+.rank-panel {
+  border: 4px solid #f6f1dc;
+  background: #171717;
+  box-shadow: inset 0 0 0 4px #050505;
+}
+
+.rank-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 4px solid #f6f1dc;
+  padding: 10px 14px;
+}
+
+.rank-panel__header strong {
+  font-size: 1.1rem;
+}
+
+.rank-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rank-list li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 78px;
+  gap: 8px;
+  border-bottom: 1px solid rgb(246 241 220 / 0.18);
+  padding: 6px 10px;
+  color: #c5bea3;
+  font-size: 0.92rem;
+}
+
+.rank-list li:nth-child(odd) {
+  border-right: 1px solid rgb(246 241 220 / 0.18);
+}
+
+.rank-list strong {
+  color: #f6f1dc;
+}
+
 @media (max-width: 520px) {
   .game-shell {
     padding: 10px;
@@ -184,5 +277,13 @@ button:hover {
 
   .cabinet {
     min-height: 500px;
+  }
+
+  .rank-list {
+    grid-template-columns: 1fr;
+  }
+
+  .rank-list li:nth-child(odd) {
+    border-right: 0;
   }
 }

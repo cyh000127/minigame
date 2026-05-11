@@ -8,6 +8,15 @@ import {
   type Direction,
   type RoadRacerState
 } from './game';
+import {
+  createLeaderboardEntry,
+  insertLeaderboardEntry,
+  isLeaderboardScore,
+  loadLeaderboard,
+  normalizeInitials,
+  saveLeaderboard,
+  type LeaderboardEntry
+} from './leaderboard';
 import './styles.css';
 
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -16,11 +25,12 @@ if (!app) {
   throw new Error('App root was not found.');
 }
 
-let state: RoadRacerState = startGame();
-state = {
-  ...state,
+let state: RoadRacerState = {
+  ...startGame(),
   phase: 'ready'
 };
+let leaderboard: LeaderboardEntry[] = loadLeaderboard(window.localStorage);
+let roundRecorded = false;
 let lastFrameTime = 0;
 
 app.innerHTML = `
@@ -35,8 +45,8 @@ app.innerHTML = `
         <strong data-speed>01</strong>
       </div>
       <div>
-        <span class="label">STATUS</span>
-        <strong data-status>READY</strong>
+        <span class="label">BEST</span>
+        <strong data-best>000000</strong>
       </div>
     </header>
     <section class="cabinet" aria-label="Road Racer">
@@ -44,21 +54,59 @@ app.innerHTML = `
       <div class="screen-message" data-message>
         <p class="kicker">ROAD RACER</p>
         <h1>READY</h1>
+        <form class="initials-form" data-initials-form hidden>
+          <label for="initials">NAME</label>
+          <input id="initials" data-initials maxlength="3" autocomplete="off" spellcheck="false" />
+          <button type="submit" data-register disabled>REGISTER</button>
+        </form>
+        <p class="save-state" data-save-state></p>
         <button type="button" data-start>START</button>
       </div>
+    </section>
+    <section class="rank-panel" aria-label="Leaderboard">
+      <div class="rank-panel__header">
+        <span class="label">RANK</span>
+        <strong>TOP 10</strong>
+      </div>
+      <ol class="rank-list" data-leaderboard></ol>
     </section>
   </main>
 `;
 
 const scoreElement = queryElement<HTMLElement>('[data-score]');
 const speedElement = queryElement<HTMLElement>('[data-speed]');
-const statusElement = queryElement<HTMLElement>('[data-status]');
+const bestElement = queryElement<HTMLElement>('[data-best]');
 const roadElement = queryElement<HTMLElement>('[data-road]');
 const messageElement = queryElement<HTMLElement>('[data-message]');
 const startButton = queryElement<HTMLButtonElement>('[data-start]');
+const initialsForm = queryElement<HTMLFormElement>('[data-initials-form]');
+const initialsInput = queryElement<HTMLInputElement>('[data-initials]');
+const registerButton = queryElement<HTMLButtonElement>('[data-register]');
+const saveStateElement = queryElement<HTMLElement>('[data-save-state]');
+const leaderboardElement = queryElement<HTMLOListElement>('[data-leaderboard]');
 
 startButton.addEventListener('click', () => {
   beginRound();
+});
+
+initialsInput.addEventListener('input', () => {
+  initialsInput.value = normalizeInitials(initialsInput.value);
+  registerButton.disabled = initialsInput.value.length !== 3;
+});
+
+initialsForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const initials = normalizeInitials(initialsInput.value);
+
+  if (initials.length !== 3 || state.phase !== 'game-over' || roundRecorded) {
+    return;
+  }
+
+  leaderboard = insertLeaderboardEntry(leaderboard, createLeaderboardEntry(initials, state.score));
+  leaderboard = saveLeaderboard(window.localStorage, leaderboard);
+  roundRecorded = true;
+  render();
 });
 
 window.addEventListener('keydown', (event) => {
@@ -70,7 +118,7 @@ window.addEventListener('keydown', (event) => {
     return;
   }
 
-  if (event.key === 'Enter') {
+  if (event.key === 'Enter' && !canRegisterCurrentScore()) {
     event.preventDefault();
     beginRound();
   }
@@ -91,6 +139,9 @@ function queryElement<T extends HTMLElement>(selector: string): T {
 
 function beginRound() {
   state = startGame();
+  roundRecorded = false;
+  initialsInput.value = '';
+  registerButton.disabled = true;
   lastFrameTime = performance.now();
   render();
 }
@@ -110,8 +161,9 @@ function tick(frameTime: number) {
 function render() {
   scoreElement.textContent = state.score.toString().padStart(6, '0');
   speedElement.textContent = state.speedLevel.toString().padStart(2, '0');
-  statusElement.textContent = state.phase === 'game-over' ? 'CRASH' : state.phase.toUpperCase();
+  bestElement.textContent = (leaderboard[0]?.score ?? 0).toString().padStart(6, '0');
   roadElement.replaceChildren(...createRoadCells(state));
+  leaderboardElement.replaceChildren(...createLeaderboardRows(leaderboard));
   renderMessage();
 }
 
@@ -156,6 +208,21 @@ function createRoadCells(currentState: RoadRacerState): HTMLElement[] {
   return cells;
 }
 
+function createLeaderboardRows(entries: LeaderboardEntry[]): HTMLElement[] {
+  return Array.from({ length: 10 }, (_, index) => {
+    const entry = entries[index];
+    const row = document.createElement('li');
+
+    row.innerHTML = `
+      <span>${(index + 1).toString().padStart(2, '0')}</span>
+      <strong>${entry?.initials ?? '---'}</strong>
+      <span>${(entry?.score ?? 0).toString().padStart(6, '0')}</span>
+    `;
+
+    return row;
+  });
+}
+
 function renderMessage() {
   const heading = messageElement.querySelector<HTMLHeadingElement>('h1');
 
@@ -163,7 +230,15 @@ function renderMessage() {
     return;
   }
 
+  const canRegister = canRegisterCurrentScore();
+
   messageElement.hidden = state.phase === 'running';
+  initialsForm.hidden = !canRegister;
+  saveStateElement.textContent = roundRecorded ? 'SAVED' : '';
   heading.textContent = state.phase === 'game-over' ? 'CRASH' : 'READY';
   startButton.textContent = state.phase === 'game-over' ? 'RESTART' : 'START';
+}
+
+function canRegisterCurrentScore(): boolean {
+  return state.phase === 'game-over' && !roundRecorded && isLeaderboardScore(leaderboard, state.score);
 }
