@@ -20,7 +20,18 @@ body {
 }
 
 button {
+  min-height: 42px;
+  border: 3px solid #f6f1dc;
+  padding: 0 18px;
+  background: #d45b43;
+  color: #120f0d;
   font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #ffce57;
 }
 
 .game-shell {
@@ -79,8 +90,9 @@ button {
 
 .road {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(12, minmax(0, 1fr));
+  gap: 0;
   width: min(100%, 480px);
   height: 100%;
   margin: 0 auto;
@@ -88,17 +100,45 @@ button {
   background: #2d2d2d;
 }
 
-.lane {
+.road-cell {
+  position: relative;
   display: grid;
-  place-items: end center;
-  border-inline: 2px dashed rgb(246 241 220 / 0.36);
-  padding-bottom: 28px;
-  color: transparent;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  border-inline: 2px dashed rgb(246 241 220 / 0.26);
+  border-bottom: 1px solid rgb(246 241 220 / 0.08);
 }
 
-.lane--player {
+.player-car,
+.road-object {
+  display: grid;
+  width: min(74%, 58px);
+  min-height: 34px;
+  place-items: center;
+  border: 3px solid #f6f1dc;
   color: #f6f1dc;
+  font-size: clamp(0.72rem, 2.8vw, 0.92rem);
   font-weight: 900;
+  line-height: 1;
+}
+
+.player-car {
+  background: #297bd6;
+}
+
+.road-object--car {
+  background: #d45b43;
+}
+
+.road-object--barrier {
+  background: #6f6f6f;
+}
+
+.player-car--crashed,
+.road-object--crashed {
+  background: #ffce57;
+  color: #120f0d;
 }
 
 .screen-message {
