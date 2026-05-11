@@ -27,7 +27,7 @@ export interface RoadRacerState {
 }
 
 const minimumStepMs = 130;
-const baseStepMs = 620;
+const baseStepMs = 520;
 const speedStepMs = 42;
 
 export function createInitialGameState(): RoadRacerState {

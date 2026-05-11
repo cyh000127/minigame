@@ -17,8 +17,8 @@ import {
   saveLeaderboard,
   type LeaderboardEntry
 } from './leaderboard';
-import barrierRedRaceUrl from './assets/kenney-racing-pack/barrier-red-race.png';
 import playerCarUrl from './assets/kenney-racing-pack/car-player-blue.png';
+import obstacleConeUrl from './assets/kenney-racing-pack/obstacle-cone.png';
 import trafficCarRedUrl from './assets/kenney-racing-pack/car-traffic-red.png';
 import trafficCarYellowUrl from './assets/kenney-racing-pack/car-traffic-yellow.png';
 import './styles.css';
@@ -195,8 +195,8 @@ function createRoadCells(currentState: RoadRacerState): HTMLElement[] {
           .filter(Boolean)
           .join(' ');
         objectElement.src =
-          object.kind === 'car' ? trafficCarUrls[object.id % trafficCarUrls.length]! : barrierRedRaceUrl;
-        objectElement.alt = object.kind === 'car' ? 'Incoming car' : 'Road barrier';
+          object.kind === 'car' ? trafficCarUrls[object.id % trafficCarUrls.length]! : obstacleConeUrl;
+        objectElement.alt = object.kind === 'car' ? 'Oncoming vehicle' : 'Traffic cone obstacle';
         cell.append(objectElement);
       }
 

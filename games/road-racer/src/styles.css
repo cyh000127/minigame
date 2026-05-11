@@ -133,7 +133,7 @@ button:hover {
 }
 
 .road-object--barrier {
-  width: min(88%, 70px);
+  width: min(54%, 42px);
 }
 
 .player-car--crashed,

@@ -23,7 +23,7 @@ corepack pnpm run dev
 - 왼쪽/오른쪽 방향키로 차선을 한 칸씩 이동합니다.
 - 점수는 생존 시간에 따라 증가합니다.
 - 시간이 지날수록 도로 오브젝트가 내려오는 속도가 빨라집니다.
-- 마주 오는 차나 장애물과 같은 차선에서 충돌하면 게임이 종료됩니다.
+- 마주 오는 자동차나 주황색 콘 장애물과 같은 차선에서 충돌하면 게임이 종료됩니다.
 - 게임 종료 후 Top 10에 들어가는 점수는 대문자 알파벳 세 글자로 등록합니다.
 - 순위는 브라우저 저장소에 JSON 문자열로 보관하며, 11위 기록은 제거합니다.
 
@@ -51,5 +51,5 @@ src/
 
 ## 에셋 출처
 
-- 자동차와 배리어 이미지는 [Kenney Racing Pack](https://kenney.nl/assets/racing-pack)의 일부를 사용합니다.
+- 자동차와 콘 이미지는 [Kenney Racing Pack](https://kenney.nl/assets/racing-pack)의 일부를 사용합니다.
 - 라이선스는 Creative Commons CC0이며, 원본 라이선스 파일은 `src/assets/kenney-racing-pack/LICENSE.txt`에 보관합니다.

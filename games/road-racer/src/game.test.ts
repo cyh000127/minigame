@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  calculateStepMs,
   createInitialGameState,
   movePlayer,
   playerRow,
@@ -49,6 +50,7 @@ describe('road racer game engine', () => {
 
     expect(state.score).toBe(165);
     expect(state.speedLevel).toBe(3);
+    expect(calculateStepMs(1)).toBe(520);
   });
 
   it('spawns and advances incoming road objects by timed steps', () => {
