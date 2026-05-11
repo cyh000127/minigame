@@ -179,8 +179,16 @@ function createRoadCells(currentState: RoadRacerState): HTMLElement[] {
     for (let lane = 0; lane < laneCount; lane += 1) {
       const cell = document.createElement('div');
       const object = currentState.objects.find((candidate) => candidate.row === row && candidate.lane === lane);
+      const crashedCell =
+        object != null &&
+        currentState.phase === 'game-over' &&
+        currentState.crashedObjectId === object.id &&
+        row === playerRow &&
+        lane === currentState.playerLane;
 
-      cell.className = 'road-cell';
+      cell.className = ['road-cell', row === playerRow ? 'road-cell--player-row' : '', crashedCell ? 'road-cell--crash' : '']
+        .filter(Boolean)
+        .join(' ');
       cell.dataset.row = String(row);
       cell.dataset.lane = String(lane);
 

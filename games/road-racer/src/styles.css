@@ -114,6 +114,16 @@ button:hover {
   border-bottom: 1px solid rgb(246 241 220 / 0.08);
 }
 
+.road-cell--player-row {
+  background: rgb(41 123 214 / 0.06);
+}
+
+.road-cell--crash {
+  outline: 4px solid #ffce57;
+  outline-offset: -6px;
+  background: rgb(212 91 67 / 0.42);
+}
+
 .player-car,
 .road-object {
   display: block;
