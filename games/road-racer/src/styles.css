@@ -1,0 +1,148 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+  font-family:
+    "Courier New", Courier, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #0b0b0b;
+  color: #f6f1dc;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(90deg, #121212 0 16px, transparent 16px calc(100% - 16px), #121212 calc(100% - 16px)),
+    #0b0b0b;
+}
+
+button {
+  font: inherit;
+}
+
+.game-shell {
+  display: grid;
+  width: min(100%, 620px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 18px 14px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 4px solid #f6f1dc;
+  background: #171717;
+  box-shadow: inset 0 0 0 4px #050505;
+}
+
+.scoreboard > div {
+  display: grid;
+  min-height: 74px;
+  place-items: center;
+  border-right: 4px solid #f6f1dc;
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.scoreboard > div:last-child {
+  border-right: 0;
+}
+
+.label {
+  color: #d45b43;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.scoreboard strong {
+  font-size: clamp(1.2rem, 5vw, 2rem);
+  line-height: 1;
+}
+
+.cabinet {
+  position: relative;
+  display: grid;
+  min-height: 560px;
+  overflow: hidden;
+  border: 5px solid #f6f1dc;
+  background: #202020;
+  box-shadow:
+    inset 0 0 0 5px #050505,
+    0 18px 50px rgb(0 0 0 / 0.45);
+}
+
+.road {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  width: min(100%, 480px);
+  height: 100%;
+  margin: 0 auto;
+  border-inline: 8px solid #d45b43;
+  background: #2d2d2d;
+}
+
+.lane {
+  display: grid;
+  place-items: end center;
+  border-inline: 2px dashed rgb(246 241 220 / 0.36);
+  padding-bottom: 28px;
+  color: transparent;
+}
+
+.lane--player {
+  color: #f6f1dc;
+  font-weight: 900;
+}
+
+.screen-message {
+  position: absolute;
+  inset: auto 18px 28px;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  border: 4px solid #f6f1dc;
+  padding: 18px;
+  background: rgb(5 5 5 / 0.88);
+  text-align: center;
+}
+
+.kicker,
+.screen-message h1,
+.screen-message p {
+  margin: 0;
+}
+
+.kicker {
+  color: #d45b43;
+  font-weight: 900;
+}
+
+.screen-message h1 {
+  font-size: clamp(2.4rem, 13vw, 4.4rem);
+  line-height: 0.9;
+}
+
+.screen-message p {
+  color: #c5bea3;
+}
+
+@media (max-width: 520px) {
+  .game-shell {
+    padding: 10px;
+  }
+
+  .scoreboard > div {
+    min-height: 62px;
+  }
+
+  .cabinet {
+    min-height: 500px;
+  }
+}
