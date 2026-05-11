@@ -116,33 +116,31 @@ button:hover {
 
 .player-car,
 .road-object {
-  display: grid;
-  width: min(74%, 58px);
-  min-height: 34px;
-  place-items: center;
-  border: 3px solid #f6f1dc;
-  color: #f6f1dc;
-  font-size: clamp(0.72rem, 2.8vw, 0.92rem);
-  font-weight: 900;
-  line-height: 1;
+  display: block;
+  width: min(76%, 58px);
+  height: auto;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.42));
 }
 
 .player-car {
-  background: #297bd6;
+  transform: translateY(2px);
 }
 
 .road-object--car {
-  background: #d45b43;
+  transform: rotate(180deg) translateY(2px);
 }
 
 .road-object--barrier {
-  background: #6f6f6f;
+  width: min(88%, 70px);
 }
 
 .player-car--crashed,
 .road-object--crashed {
-  background: #ffce57;
-  color: #120f0d;
+  filter:
+    drop-shadow(0 0 5px #ffce57)
+    drop-shadow(0 0 12px #d45b43);
 }
 
 .screen-message {

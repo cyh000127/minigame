@@ -17,6 +17,10 @@ import {
   saveLeaderboard,
   type LeaderboardEntry
 } from './leaderboard';
+import barrierRedRaceUrl from './assets/kenney-racing-pack/barrier-red-race.png';
+import playerCarUrl from './assets/kenney-racing-pack/car-player-blue.png';
+import trafficCarRedUrl from './assets/kenney-racing-pack/car-traffic-red.png';
+import trafficCarYellowUrl from './assets/kenney-racing-pack/car-traffic-yellow.png';
 import './styles.css';
 
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -32,6 +36,7 @@ let state: RoadRacerState = {
 let leaderboard: LeaderboardEntry[] = loadLeaderboard(window.localStorage);
 let roundRecorded = false;
 let lastFrameTime = 0;
+const trafficCarUrls = [trafficCarRedUrl, trafficCarYellowUrl];
 
 app.innerHTML = `
   <main class="game-shell">
@@ -180,7 +185,7 @@ function createRoadCells(currentState: RoadRacerState): HTMLElement[] {
       cell.dataset.lane = String(lane);
 
       if (object) {
-        const objectElement = document.createElement('span');
+        const objectElement = document.createElement('img');
 
         objectElement.className = [
           'road-object',
@@ -189,15 +194,18 @@ function createRoadCells(currentState: RoadRacerState): HTMLElement[] {
         ]
           .filter(Boolean)
           .join(' ');
-        objectElement.textContent = object.kind === 'car' ? 'CAR' : 'XXX';
+        objectElement.src =
+          object.kind === 'car' ? trafficCarUrls[object.id % trafficCarUrls.length]! : barrierRedRaceUrl;
+        objectElement.alt = object.kind === 'car' ? 'Incoming car' : 'Road barrier';
         cell.append(objectElement);
       }
 
       if (row === playerRow && lane === currentState.playerLane) {
-        const player = document.createElement('span');
+        const player = document.createElement('img');
 
         player.className = currentState.phase === 'game-over' ? 'player-car player-car--crashed' : 'player-car';
-        player.textContent = 'YOU';
+        player.src = playerCarUrl;
+        player.alt = 'Player car';
         cell.append(player);
       }
 

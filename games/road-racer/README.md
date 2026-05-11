@@ -7,6 +7,7 @@
 - TypeScript
 - Vite
 - Vitest
+- Kenney Racing Pack 자동차 에셋
 
 ## 실행 방법
 
@@ -47,3 +48,8 @@ src/
 ```
 
 이 게임은 `games/road-racer` 내부 코드만 사용하며, 다른 게임 디렉토리의 코드를 참조하지 않습니다.
+
+## 에셋 출처
+
+- 자동차와 배리어 이미지는 [Kenney Racing Pack](https://kenney.nl/assets/racing-pack)의 일부를 사용합니다.
+- 라이선스는 Creative Commons CC0이며, 원본 라이선스 파일은 `src/assets/kenney-racing-pack/LICENSE.txt`에 보관합니다.
