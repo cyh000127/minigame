@@ -121,7 +121,7 @@ appRoot.innerHTML = `
         </div>
 
         <div class="stage" data-stage>
-          <iframe data-frame title="Selected minigame" loading="lazy"></iframe>
+          <iframe data-frame title="Selected minigame" loading="lazy" hidden></iframe>
           <div class="stage__empty" data-stage-empty>
             <span>READY</span>
             <strong>RUN을 누르면 이 영역에서 실행됩니다</strong>
@@ -413,6 +413,7 @@ function showLibraryView(): void {
   }
 
   runtime.pause();
+  resetRunnerStage();
   hubShell.dataset.view = 'library';
   libraryView.hidden = false;
   playView.hidden = true;
@@ -421,10 +422,32 @@ function showLibraryView(): void {
 }
 
 function showRunnerView(game: GameEntry): void {
+  prepareRunnerForSelection(game);
   hubShell.dataset.view = 'runner';
   libraryView.hidden = true;
   playView.hidden = false;
   updateSelectedGame(game);
+}
+
+function prepareRunnerForSelection(game: GameEntry): void {
+  if (selectedGame.slug === game.slug) {
+    return;
+  }
+
+  if (activeSession) {
+    finishLocalSession({ completed: false });
+  }
+
+  runtime.pause();
+  resetRunnerStage();
+}
+
+function resetRunnerStage(): void {
+  frame.hidden = true;
+  emptyState.hidden = false;
+  delete stage.dataset.mode;
+  pauseLabel.textContent = 'PAUSED';
+  pauseTitle.textContent = '';
 }
 
 function updateSelectedGame(game: GameEntry): void {
