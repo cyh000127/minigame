@@ -30,6 +30,8 @@ corepack pnpm run test
 
 ```text
 src/
+  engine.ts    물리, 점수, 스테이지 엔진
+  engine.test.ts 엔진 테스트
   main.ts      Canvas 초기화와 앱 진입점
   styles.css   neon boardgame 화면 스타일
 ```
