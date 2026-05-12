@@ -42,6 +42,8 @@ corepack pnpm run test
 
 ```text
 src/
+  game.ts      레이저 스폰, 피격, 점수, 난이도 엔진
+  game.test.ts 엔진 단위 테스트
   main.ts      브라우저 진입점과 기본 UI
   styles.css   Laser Grid 화면 스타일
 ```
