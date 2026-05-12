@@ -57,3 +57,4 @@ corepack pnpm run dev
 - [Perfect Stop](games/perfect-stop/README.md)
 - [Type Rain](games/type-rain/README.md)
 - [Whack Mole](games/whack-mole/README.md)
+- [Pong Duel](games/pong-duel/README.md)

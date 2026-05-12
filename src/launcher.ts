@@ -123,6 +123,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#84cc16',
     status: 'playable',
   },
+  {
+    slug: 'pong-duel',
+    title: 'Pong Duel',
+    genre: 'Arcade Sports',
+    description: '왼쪽 패들을 조작해 AI와 공을 주고받는 클래식 Pong 게임',
+    controls: ['Arrow Up', 'Arrow Down', 'W', 'S', 'Space'],
+    accent: '#22d3ee',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
