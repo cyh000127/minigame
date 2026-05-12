@@ -50,6 +50,10 @@ app.innerHTML = `
         <strong data-speed>01</strong>
       </div>
       <div>
+        <span class="label">NEAR</span>
+        <strong data-near>00</strong>
+      </div>
+      <div>
         <span class="label">BEST</span>
         <strong data-best>000000</strong>
       </div>
@@ -80,6 +84,7 @@ app.innerHTML = `
 
 const scoreElement = queryElement<HTMLElement>('[data-score]');
 const speedElement = queryElement<HTMLElement>('[data-speed]');
+const nearElement = queryElement<HTMLElement>('[data-near]');
 const bestElement = queryElement<HTMLElement>('[data-best]');
 const roadElement = queryElement<HTMLElement>('[data-road]');
 const messageElement = queryElement<HTMLElement>('[data-message]');
@@ -166,7 +171,9 @@ function tick(frameTime: number) {
 function render() {
   scoreElement.textContent = state.score.toString().padStart(6, '0');
   speedElement.textContent = state.speedLevel.toString().padStart(2, '0');
+  nearElement.textContent = state.nearMissCount.toString().padStart(2, '0');
   bestElement.textContent = (leaderboard[0]?.score ?? 0).toString().padStart(6, '0');
+  roadElement.dataset.mode = state.roadMode;
   roadElement.replaceChildren(...createRoadCells(state));
   leaderboardElement.replaceChildren(...createLeaderboardRows(leaderboard));
   renderMessage();
@@ -186,7 +193,12 @@ function createRoadCells(currentState: RoadRacerState): HTMLElement[] {
         row === playerRow &&
         lane === currentState.playerLane;
 
-      cell.className = ['road-cell', row === playerRow ? 'road-cell--player-row' : '', crashedCell ? 'road-cell--crash' : '']
+      cell.className = [
+        'road-cell',
+        row === playerRow ? 'road-cell--player-row' : '',
+        object?.nearMissAwarded ? 'road-cell--near-miss' : '',
+        crashedCell ? 'road-cell--crash' : ''
+      ]
         .filter(Boolean)
         .join(' ');
       cell.dataset.row = String(row);

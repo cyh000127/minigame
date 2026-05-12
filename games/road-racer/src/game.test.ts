@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateStepMs,
+  calculateRoadMode,
   createInitialGameState,
   movePlayer,
+  nearMissScore,
   playerRow,
   roadRows,
   startGame,
@@ -25,6 +27,7 @@ describe('road racer game engine', () => {
     expect(initialState.phase).toBe('ready');
     expect(running.phase).toBe('running');
     expect(running.score).toBe(0);
+    expect(running.nearMissCount).toBe(0);
     expect(running.objects).toEqual([]);
   });
 
@@ -53,6 +56,12 @@ describe('road racer game engine', () => {
     expect(calculateStepMs(1)).toBe(520);
   });
 
+  it('cycles road visual modes by elapsed time', () => {
+    expect(calculateRoadMode(0)).toBe('day');
+    expect(calculateRoadMode(18_000)).toBe('night');
+    expect(calculateRoadMode(36_000)).toBe('rain');
+  });
+
   it('spawns and advances incoming road objects by timed steps', () => {
     const randomValues = [0, 0.2, 0.9];
     const state = updateGame(startGame(), 620, () => randomValues.shift() ?? 1);
@@ -75,5 +84,19 @@ describe('road racer game engine', () => {
     expect(roadRows).toBe(12);
     expect(result.phase).toBe('game-over');
     expect(result.crashedObjectId).toBe(7);
+  });
+
+  it('awards a near miss bonus once for adjacent dodges', () => {
+    const state = runningState({
+      playerLane: 1,
+      objects: [{ id: 9, lane: 2, row: playerRow - 1, kind: 'car' }]
+    });
+    const result = updateGame(state, 620, () => 1);
+    const secondTick = updateGame(result, 16, () => 1);
+
+    expect(result.phase).toBe('running');
+    expect(result.nearMissCount).toBe(1);
+    expect(result.nearMissBonus).toBe(nearMissScore);
+    expect(secondTick.nearMissCount).toBe(1);
   });
 });

@@ -2,24 +2,30 @@ export const laneCount = 4;
 export const roadRows = 12;
 export const playerRow = roadRows - 1;
 export const startingLane = 1;
+export const nearMissScore = 25;
 
 export type GamePhase = 'ready' | 'running' | 'game-over';
 export type Direction = 'left' | 'right';
 export type RoadObjectKind = 'car' | 'barrier';
+export type RoadMode = 'day' | 'night' | 'rain';
 
 export interface RoadObject {
   id: number;
   lane: number;
   row: number;
   kind: RoadObjectKind;
+  nearMissAwarded?: boolean;
 }
 
 export interface RoadRacerState {
   phase: GamePhase;
   playerLane: number;
   score: number;
+  nearMissCount: number;
+  nearMissBonus: number;
   elapsedMs: number;
   speedLevel: number;
+  roadMode: RoadMode;
   stepAccumulatorMs: number;
   nextObjectId: number;
   objects: RoadObject[];
@@ -35,8 +41,11 @@ export function createInitialGameState(): RoadRacerState {
     phase: 'ready',
     playerLane: startingLane,
     score: 0,
+    nearMissCount: 0,
+    nearMissBonus: 0,
     elapsedMs: 0,
     speedLevel: 1,
+    roadMode: 'day',
     stepAccumulatorMs: 0,
     nextObjectId: 1,
     objects: [],
@@ -63,6 +72,20 @@ export function calculateScore(elapsedMs: number): number {
   return Math.floor(Math.max(0, elapsedMs) / 100);
 }
 
+export function calculateRoadMode(elapsedMs: number): RoadMode {
+  const modeIndex = Math.floor(Math.max(0, elapsedMs) / 18_000) % 3;
+
+  if (modeIndex === 1) {
+    return 'night';
+  }
+
+  if (modeIndex === 2) {
+    return 'rain';
+  }
+
+  return 'day';
+}
+
 export function movePlayer(state: RoadRacerState, direction: Direction): RoadRacerState {
   if (state.phase !== 'running') {
     return state;
@@ -75,7 +98,9 @@ export function movePlayer(state: RoadRacerState, direction: Direction): RoadRac
     playerLane
   };
 
-  return resolveCollision(movedState);
+  const collisionState = resolveCollision(movedState);
+
+  return collisionState.phase === 'running' ? applyNearMissBonuses(collisionState) : collisionState;
 }
 
 export function updateGame(state: RoadRacerState, deltaMs: number, random: () => number = Math.random): RoadRacerState {
@@ -85,7 +110,8 @@ export function updateGame(state: RoadRacerState, deltaMs: number, random: () =>
 
   const elapsedMs = state.elapsedMs + Math.max(0, deltaMs);
   const speedLevel = calculateSpeedLevel(elapsedMs);
-  const score = calculateScore(elapsedMs);
+  const roadMode = calculateRoadMode(elapsedMs);
+  const score = calculateScore(elapsedMs) + state.nearMissBonus;
   const stepMs = calculateStepMs(speedLevel);
   let stepAccumulatorMs = state.stepAccumulatorMs + Math.max(0, deltaMs);
   let nextObjectId = state.nextObjectId;
@@ -94,6 +120,7 @@ export function updateGame(state: RoadRacerState, deltaMs: number, random: () =>
     ...state,
     elapsedMs,
     speedLevel,
+    roadMode,
     score,
     stepAccumulatorMs
   };
@@ -117,6 +144,11 @@ export function updateGame(state: RoadRacerState, deltaMs: number, random: () =>
       nextObjectId,
       stepAccumulatorMs
     });
+
+    if (nextState.phase === 'running') {
+      nextState = applyNearMissBonuses(nextState);
+      objects = nextState.objects;
+    }
   }
 
   return {
@@ -147,7 +179,8 @@ function createRoadObject(id: number, random: () => number): RoadObject {
     id,
     lane: Math.min(laneCount - 1, Math.floor(random() * laneCount)),
     row: 0,
-    kind: random() < 0.72 ? 'car' : 'barrier'
+    kind: random() < 0.72 ? 'car' : 'barrier',
+    nearMissAwarded: false
   };
 }
 
@@ -164,5 +197,40 @@ function resolveCollision(state: RoadRacerState): RoadRacerState {
     ...state,
     phase: 'game-over',
     crashedObjectId: crashedObject.id
+  };
+}
+
+function applyNearMissBonuses(state: RoadRacerState): RoadRacerState {
+  let nearMissCount = state.nearMissCount;
+  let nearMissBonus = state.nearMissBonus;
+  const objects = state.objects.map((object) => {
+    const closeDodge =
+      object.row === playerRow &&
+      Math.abs(object.lane - state.playerLane) === 1 &&
+      object.nearMissAwarded !== true;
+
+    if (!closeDodge) {
+      return object;
+    }
+
+    nearMissCount += 1;
+    nearMissBonus += nearMissScore;
+
+    return {
+      ...object,
+      nearMissAwarded: true
+    };
+  });
+
+  if (nearMissCount === state.nearMissCount) {
+    return state;
+  }
+
+  return {
+    ...state,
+    objects,
+    nearMissCount,
+    nearMissBonus,
+    score: calculateScore(state.elapsedMs) + nearMissBonus
   };
 }
