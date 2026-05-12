@@ -122,6 +122,7 @@ describe('2048 engine', () => {
       status: 'playing' as const,
       hasWon: false,
       moveCount: 0,
+      targetTile: 2048,
     };
 
     expect(applyMove(state, 'left', sequenceRandom([0, 0]))).toBe(state);
@@ -151,6 +152,7 @@ describe('2048 engine', () => {
       status: 'playing' as const,
       hasWon: false,
       moveCount: 0,
+      targetTile: 2048,
     };
 
     const wonState = applyMove(state, 'left', sequenceRandom([0.9, 0]));
@@ -159,5 +161,24 @@ describe('2048 engine', () => {
     expect(wonState.hasWon).toBe(true);
     expect(wonState.score).toBe(2048);
     expect(continueAfterWin(wonState).status).toBe('playing');
+  });
+
+  it('uses the selected target tile for win detection', () => {
+    const state = {
+      board: [
+        512, 512, 0, 0,
+        2, 4, 8, 16,
+        32, 64, 128, 256,
+        0, 0, 0, 0,
+      ],
+      score: 0,
+      bestScore: 0,
+      status: 'playing' as const,
+      hasWon: false,
+      moveCount: 0,
+      targetTile: 1024,
+    };
+
+    expect(applyMove(state, 'left', sequenceRandom([0.9, 0])).status).toBe('won');
   });
 });

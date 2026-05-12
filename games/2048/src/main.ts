@@ -7,6 +7,7 @@ import {
   createGameState,
   getCell,
   type Direction,
+  type GameState,
 } from './game';
 
 interface MiniGameLifecycleMessage {
@@ -17,6 +18,7 @@ interface MiniGameLifecycleMessage {
 
 const BEST_SCORE_KEY = 'minigame:2048:best-score';
 const SWIPE_THRESHOLD_PX = 32;
+const TARGET_TILES = [1024, 2048, 4096] as const;
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -47,7 +49,16 @@ appRoot.innerHTML = `
 
     <section class="action-row">
       <p>Use arrow keys or swipe to move every tile on the board.</p>
-      <button data-new-game type="button">New Game</button>
+      <div class="action-row__controls">
+        <label class="target-select">
+          <span>Goal</span>
+          <select data-target>
+            ${TARGET_TILES.map((tile) => `<option value="${tile}"${tile === 2048 ? ' selected' : ''}>${tile}</option>`).join('')}
+          </select>
+        </label>
+        <button data-undo type="button" disabled>Undo</button>
+        <button data-new-game type="button">New Game</button>
+      </div>
     </section>
 
     <section class="board-wrap">
@@ -68,6 +79,8 @@ const shell = mustQuery<HTMLElement>('.game-shell');
 const scoreElement = mustQuery<HTMLElement>('[data-score]');
 const bestElement = mustQuery<HTMLElement>('[data-best]');
 const boardElement = mustQuery<HTMLElement>('[data-board]');
+const targetSelect = mustQuery<HTMLSelectElement>('[data-target]');
+const undoButton = mustQuery<HTMLButtonElement>('[data-undo]');
 const newGameButton = mustQuery<HTMLButtonElement>('[data-new-game]');
 const overlayElement = mustQuery<HTMLElement>('[data-overlay]');
 const overlayKicker = mustQuery<HTMLElement>('[data-overlay-kicker]');
@@ -75,11 +88,18 @@ const overlayTitle = mustQuery<HTMLElement>('[data-overlay-title]');
 const continueButton = mustQuery<HTMLButtonElement>('[data-continue]');
 const restartButton = mustQuery<HTMLButtonElement>('[data-restart]');
 
-let state = createGameState(Math.random, loadBestScore());
+let targetTile = Number.parseInt(targetSelect.value, 10);
+let state = createGameState(Math.random, loadBestScore(), targetTile);
+let undoState: GameState | null = null;
 let paused = false;
 let touchStart: { readonly x: number; readonly y: number } | null = null;
 
 newGameButton.addEventListener('click', restartGame);
+undoButton.addEventListener('click', undoMove);
+targetSelect.addEventListener('change', () => {
+  targetTile = Number.parseInt(targetSelect.value, 10);
+  restartGame();
+});
 restartButton.addEventListener('click', restartGame);
 continueButton.addEventListener('click', () => {
   state = continueAfterWin(state);
@@ -91,6 +111,11 @@ window.addEventListener('keydown', (event) => {
   const direction = getDirectionFromKey(event.key);
 
   if (!direction) {
+    if (event.key.toLowerCase() === 'u') {
+      event.preventDefault();
+      undoMove();
+    }
+
     return;
   }
 
@@ -165,7 +190,8 @@ window.addEventListener('message', (event: MessageEvent<MiniGameLifecycleMessage
 render();
 
 function restartGame(): void {
-  state = createGameState(Math.random, state.bestScore);
+  state = createGameState(Math.random, state.bestScore, targetTile);
+  undoState = null;
   paused = false;
   render();
 }
@@ -175,14 +201,29 @@ function move(direction: Direction): void {
     return;
   }
 
+  const previousState = state;
   const nextState = applyMove(state, direction);
 
   if (nextState === state) {
     return;
   }
 
+  undoState = previousState;
   state = nextState;
   saveBestScore(state.bestScore);
+  render();
+}
+
+function undoMove(): void {
+  if (paused || !undoState || state.status !== 'playing') {
+    return;
+  }
+
+  state = {
+    ...undoState,
+    bestScore: state.bestScore,
+  };
+  undoState = null;
   render();
 }
 
@@ -190,6 +231,7 @@ function render(): void {
   shell.dataset.paused = paused ? 'true' : 'false';
   scoreElement.textContent = state.score.toString();
   bestElement.textContent = state.bestScore.toString();
+  undoButton.disabled = paused || !undoState || state.status !== 'playing';
   boardElement.innerHTML = Array.from({ length: CELL_COUNT }, (_, index) => renderCell(index)).join('');
   renderOverlay();
 }

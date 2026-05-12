@@ -10,6 +10,7 @@ export interface GameState {
   readonly status: GameStatus;
   readonly hasWon: boolean;
   readonly moveCount: number;
+  readonly targetTile?: number;
 }
 
 export interface MoveResult {
@@ -29,6 +30,7 @@ export function createEmptyBoard(): Board {
 export function createGameState(
   random: RandomSource = Math.random,
   bestScore = 0,
+  targetTile = WIN_TILE,
 ): GameState {
   const boardWithFirstTile = spawnRandomTile(createEmptyBoard(), random);
   const board = spawnRandomTile(boardWithFirstTile, random);
@@ -40,6 +42,7 @@ export function createGameState(
     status: 'playing',
     hasWon: false,
     moveCount: 0,
+    targetTile,
   };
 }
 
@@ -60,7 +63,8 @@ export function applyMove(
 
   const nextBoard = spawnRandomTile(movedBoard.board, random);
   const score = state.score + movedBoard.scoreGain;
-  const hasJustWon = !state.hasWon && getMaxTile(nextBoard) >= WIN_TILE;
+  const targetTile = state.targetTile ?? WIN_TILE;
+  const hasJustWon = !state.hasWon && getMaxTile(nextBoard) >= targetTile;
   const hasWon = state.hasWon || hasJustWon;
   const status = getNextStatus(nextBoard, hasJustWon);
 
@@ -71,6 +75,7 @@ export function applyMove(
     status,
     hasWon,
     moveCount: state.moveCount + 1,
+    targetTile,
   };
 }
 
