@@ -32,12 +32,22 @@ corepack pnpm run test
 - `Space`: 시작 또는 일시정지
 - `Enter`: 새 게임
 
+## 규칙
+
+- 플레이어는 왼쪽 패들을 조작하고 AI는 오른쪽 패들을 자동으로 움직입니다.
+- 공이 상대편 뒤로 지나가면 1점을 얻습니다.
+- 패들에 공이 닿을 때마다 랠리가 증가하고 공 속도가 조금씩 빨라집니다.
+- 먼저 5점을 얻으면 승리합니다.
+- 라운드가 끝나면 `Space`를 눌러 다음 랠리를 시작합니다.
+
 ## 구조
 
 ```text
 src/
-  main.ts      브라우저 진입점과 기본 UI
-  styles.css   Pong Duel 화면 스타일
+  game.ts       패들, 공, 충돌, AI, 득점 엔진
+  game.test.ts  게임 엔진 단위 테스트
+  main.ts       브라우저 진입점과 기본 UI
+  styles.css    Pong Duel 화면 스타일
 ```
 
 이 게임은 `games/pong-duel` 내부 코드만 사용하며, 다른 게임 디렉토리의 코드를 참조하지 않습니다.
