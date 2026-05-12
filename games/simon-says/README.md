@@ -31,12 +31,23 @@ corepack pnpm run test
 - `Space`: 시작 또는 일시정지
 - `Enter`: 새 게임
 
+## 규칙
+
+- 게임이 보여주는 패드 순서를 기억한 뒤 같은 순서로 입력합니다.
+- 라운드를 클리어할 때마다 시퀀스가 1개씩 길어집니다.
+- 정답 입력과 라운드 클리어 보너스로 점수를 획득합니다.
+- 3라운드마다 표시 속도가 빨라집니다.
+- 틀린 패드를 누르면 게임이 종료됩니다.
+- 최고 점수는 브라우저 `localStorage`에 저장됩니다.
+
 ## 구조
 
 ```text
 src/
-  main.ts      브라우저 진입점과 기본 UI
-  styles.css   Simon Says 화면 스타일
+  game.ts       시퀀스, 입력 판정, 점수, 속도 엔진
+  game.test.ts  게임 엔진 단위 테스트
+  main.ts       브라우저 진입점과 기본 UI
+  styles.css    Simon Says 화면 스타일
 ```
 
 이 게임은 `games/simon-says` 내부 코드만 사용하며, 다른 게임 디렉토리의 코드를 참조하지 않습니다.
