@@ -8,6 +8,7 @@ export const maxPaddleBounceAngle = (60 * Math.PI) / 180;
 
 export type BrickKind = 'normal' | 'solid';
 export type ItemType = 'expand' | 'multi-ball' | 'power-shot' | 'magnet';
+type StageCell = '.' | '1' | '2';
 
 export interface Vector {
   x: number;
@@ -25,6 +26,15 @@ export interface CircleCollision {
   hit: boolean;
   normal: Vector;
   penetration: number;
+}
+
+export interface RandomStageOptions {
+  seed?: number;
+  rows?: number;
+  cols?: number;
+  minBrickRatio?: number;
+  maxBrickRatio?: number;
+  solidChance?: number;
 }
 
 export class Ball {
@@ -293,8 +303,8 @@ export function increaseBallSpeed(ball: Ball) {
   ball.setSpeed(ball.speed * speedIncreaseMultiplier);
 }
 
-export function createStageBricks(stageIndex: number): Brick[] {
-  const layout = stageLayouts[stageIndex % stageLayouts.length]!;
+export function createStageBricks(stageIndex: number, options: RandomStageOptions = {}): Brick[] {
+  const layout = createRandomStageLayout(stageIndex, options);
   const brickWidth = 74;
   const brickHeight = 24;
   const gap = 10;
@@ -322,29 +332,246 @@ export function createStageBricks(stageIndex: number): Brick[] {
   );
 }
 
-export const stageLayouts = [
-  [
-    '1111111111',
-    '1221111221',
-    '1112221111',
-    '1111111111',
-    '..112211..'
-  ],
-  [
-    '2222222222',
-    '1..1111..1',
-    '1112222111',
-    '1..1111..1',
-    '2222222222'
-  ],
-  [
-    '11..22..11',
-    '.11222211.',
-    '1122112211',
-    '.11222211.',
-    '11..22..11'
-  ]
-] as const;
+export function createRandomStageLayout(stageIndex: number, options: RandomStageOptions = {}): string[] {
+  const rows = options.rows ?? Math.min(8, 5 + Math.floor(stageIndex / 2));
+  const cols = options.cols ?? 10;
+  const minBrickRatio = options.minBrickRatio ?? 0.54;
+  const maxBrickRatio = options.maxBrickRatio ?? 0.76;
+  const solidChance = options.solidChance ?? Math.min(0.34, 0.16 + stageIndex * 0.025);
+  const seed = options.seed ?? stageIndex + 1;
+  const random = createSeededRandom(seed * 1013 + rows * 37 + cols * 17);
+  const maxAttempts = 80;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const layout = createRandomLayoutCandidate({
+      rows,
+      cols,
+      minBrickRatio,
+      maxBrickRatio,
+      solidChance,
+      random
+    });
+
+    if (isStageLayoutClearable(layout)) {
+      return layout;
+    }
+  }
+
+  return createGuaranteedClearableLayout(rows, cols, solidChance, random);
+}
+
+export function isStageLayoutClearable(layout: string[]): boolean {
+  const grid = normalizeStageLayout(layout);
+
+  if (grid.length === 0 || grid[0]?.length === 0) {
+    return false;
+  }
+
+  let remaining = countBricks(grid);
+
+  if (remaining === 0) {
+    return false;
+  }
+
+  while (remaining > 0) {
+    const outsideReachable = findOutsideReachableEmptyCells(grid);
+    const exposedBricks: Array<{ row: number; col: number }> = [];
+
+    grid.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell === '.') {
+          return;
+        }
+
+        if (isBrickExposed(grid, outsideReachable, rowIndex, colIndex)) {
+          exposedBricks.push({ row: rowIndex, col: colIndex });
+        }
+      });
+    });
+
+    if (exposedBricks.length === 0) {
+      return false;
+    }
+
+    exposedBricks.forEach(({ row, col }) => {
+      grid[row]![col] = '.';
+    });
+    remaining -= exposedBricks.length;
+  }
+
+  return true;
+}
+
+function createRandomLayoutCandidate({
+  rows,
+  cols,
+  minBrickRatio,
+  maxBrickRatio,
+  solidChance,
+  random
+}: {
+  rows: number;
+  cols: number;
+  minBrickRatio: number;
+  maxBrickRatio: number;
+  solidChance: number;
+  random: () => number;
+}): string[] {
+  const brickRatio = minBrickRatio + random() * (maxBrickRatio - minBrickRatio);
+  const symmetry = random() > 0.28;
+  const grid: StageCell[][] = Array.from({ length: rows }, () => Array.from({ length: cols }, () => '.'));
+
+  for (let row = 0; row < rows; row += 1) {
+    const rowBias = 1 - row / Math.max(1, rows - 1) * 0.18;
+    const editableCols = symmetry ? Math.ceil(cols / 2) : cols;
+
+    for (let col = 0; col < editableCols; col += 1) {
+      const edgeBias = col === 0 || col === cols - 1 ? -0.12 : 0;
+      const shouldPlace = random() < brickRatio * rowBias + edgeBias;
+
+      if (!shouldPlace) {
+        continue;
+      }
+
+      const cell: StageCell = random() < solidChance ? '2' : '1';
+
+      grid[row]![col] = cell;
+
+      if (symmetry) {
+        grid[row]![cols - 1 - col] = cell;
+      }
+    }
+  }
+
+  ensureMinimumBrickCount(grid, Math.ceil(rows * cols * minBrickRatio), solidChance, random);
+
+  return grid.map((row) => row.join(''));
+}
+
+function createGuaranteedClearableLayout(rows: number, cols: number, solidChance: number, random: () => number): string[] {
+  const grid: StageCell[][] = Array.from({ length: rows }, () => Array.from({ length: cols }, () => '.'));
+  const center = Math.floor(cols / 2);
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const distance = Math.abs(center - col);
+      const chance = Math.max(0.28, 0.9 - distance * 0.12 - row * 0.04);
+
+      if (random() < chance) {
+        grid[row]![col] = random() < solidChance ? '2' : '1';
+      }
+    }
+  }
+
+  return grid.map((row) => row.join(''));
+}
+
+function ensureMinimumBrickCount(
+  grid: StageCell[][],
+  minimumBrickCount: number,
+  solidChance: number,
+  random: () => number
+) {
+  let currentCount = countBricks(grid);
+
+  while (currentCount < minimumBrickCount) {
+    const row = Math.floor(random() * grid.length);
+    const col = Math.floor(random() * grid[row]!.length);
+
+    if (grid[row]![col] !== '.') {
+      continue;
+    }
+
+    grid[row]![col] = random() < solidChance ? '2' : '1';
+    currentCount += 1;
+  }
+}
+
+function normalizeStageLayout(layout: string[]): StageCell[][] {
+  const width = layout[0]?.length ?? 0;
+
+  return layout
+    .filter((row) => row.length === width)
+    .map((row) =>
+      [...row].map((cell): StageCell => {
+        if (cell === '1' || cell === '2') {
+          return cell;
+        }
+
+        return '.';
+      })
+    );
+}
+
+function countBricks(grid: StageCell[][]): number {
+  return grid.reduce((total, row) => total + row.filter((cell) => cell !== '.').length, 0);
+}
+
+function findOutsideReachableEmptyCells(grid: StageCell[][]): boolean[][] {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  const visited = Array.from({ length: rows }, () => Array.from({ length: cols }, () => false));
+  const queue: Array<{ row: number; col: number }> = [];
+
+  function enqueue(row: number, col: number) {
+    if (row < 0 || row >= rows || col < 0 || col >= cols || visited[row]![col] || grid[row]![col] !== '.') {
+      return;
+    }
+
+    visited[row]![col] = true;
+    queue.push({ row, col });
+  }
+
+  for (let col = 0; col < cols; col += 1) {
+    enqueue(0, col);
+    enqueue(rows - 1, col);
+  }
+
+  for (let row = 0; row < rows; row += 1) {
+    enqueue(row, 0);
+    enqueue(row, cols - 1);
+  }
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+
+    enqueue(current.row - 1, current.col);
+    enqueue(current.row + 1, current.col);
+    enqueue(current.row, current.col - 1);
+    enqueue(current.row, current.col + 1);
+  }
+
+  return visited;
+}
+
+function isBrickExposed(grid: StageCell[][], outsideReachable: boolean[][], row: number, col: number): boolean {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  const neighbors = [
+    { row: row - 1, col },
+    { row: row + 1, col },
+    { row, col: col - 1 },
+    { row, col: col + 1 }
+  ];
+
+  return neighbors.some((neighbor) => {
+    if (neighbor.row < 0 || neighbor.row >= rows || neighbor.col < 0 || neighbor.col >= cols) {
+      return true;
+    }
+
+    return outsideReachable[neighbor.row]?.[neighbor.col] === true;
+  });
+}
+
+function createSeededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+
+    return state / 0x100000000;
+  };
+}
 
 function normalizeVector(vector: Vector): Vector {
   const length = Math.hypot(vector.x, vector.y);

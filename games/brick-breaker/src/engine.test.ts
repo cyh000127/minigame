@@ -9,8 +9,10 @@ import {
   calculateClearBonus,
   calculatePaddleReflectionVelocity,
   circleAabbCollision,
+  createRandomStageLayout,
   createStageBricks,
   increaseBallSpeed,
+  isStageLayoutClearable,
   reflectVelocity,
   shouldIncreaseSpeed
 } from './engine';
@@ -83,11 +85,28 @@ describe('brick breaker engine', () => {
     expect(shouldIncreaseSpeed(10)).toBe(true);
   });
 
-  it('creates reusable stage layouts with mixed brick types', () => {
+  it('creates deterministic random stage layouts with mixed brick types', () => {
+    const firstLayout = createRandomStageLayout(3, { seed: 42 });
+    const secondLayout = createRandomStageLayout(3, { seed: 42 });
     const bricks = createStageBricks(0);
 
+    expect(firstLayout).toEqual(secondLayout);
+    expect(isStageLayoutClearable(firstLayout)).toBe(true);
     expect(bricks.length).toBeGreaterThan(0);
     expect(bricks.some((brick) => brick.kind === 'solid')).toBe(true);
     expect(bricks.some((brick) => brick.kind === 'normal')).toBe(true);
+  });
+
+  it('generates only clearable maps across many seeds', () => {
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const layout = createRandomStageLayout(seed, { seed });
+
+      expect(isStageLayoutClearable(layout)).toBe(true);
+      expect(layout.join('').replace(/\./g, '').length).toBeGreaterThan(0);
+    }
+  });
+
+  it('rejects maps with no breakable bricks', () => {
+    expect(isStageLayoutClearable(['....', '....'])).toBe(false);
   });
 });

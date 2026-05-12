@@ -94,6 +94,7 @@ const brickColors = {
 let phase: GamePhase = 'ready';
 let score = 0;
 let stageIndex = 0;
+let runSeed = createRunSeed();
 let lives = 3;
 let combo = 0;
 let bricksBroken = 0;
@@ -161,6 +162,7 @@ function startRound() {
   phase = 'running';
   score = 0;
   stageIndex = 0;
+  runSeed = createRunSeed();
   lives = 3;
   combo = 0;
   bricksBroken = 0;
@@ -172,7 +174,7 @@ function startRound() {
 
 function resetStage() {
   paddle = new Paddle(playfieldWidth / 2, playfieldHeight - 54);
-  bricks = createStageBricks(stageIndex);
+  bricks = createStageBricks(stageIndex, { seed: runSeed + stageIndex * 4099 });
   balls = [createBallOnPaddle()];
   items = [];
   combo = 0;
@@ -701,4 +703,8 @@ function playTone(frequency: number, durationSeconds: number, type: OscillatorTy
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+function createRunSeed(): number {
+  return Math.floor(Math.random() * 0xffffffff);
 }
