@@ -5,6 +5,7 @@ import {
   DIRECTION_COLORS,
   getColorMeta,
   getKeyboardDirection,
+  getRoundTargetLabel,
   getRuleLabel,
   isFeverActive,
   SETTINGS,
@@ -64,6 +65,7 @@ appRoot.innerHTML = `
           >
             <span>${entry.keyLabel}</span>
             <strong>${entry.label}</strong>
+            <em>${entry.assistLabel}</em>
           </button>
         `,
       ).join('')}
@@ -189,11 +191,11 @@ function render(): void {
   gaugeElement.style.width = `${Math.max(0, Math.min(1, gaugeRatio)) * 100}%`;
   gaugeElement.classList.toggle('is-low', gaugeRatio < 0.28);
   ruleElement.textContent = getRuleLabel(state.round.rule);
-  ruleElement.classList.toggle('is-trap', state.round.rule === 'opposite');
+  ruleElement.classList.toggle('is-trap', state.round.rule !== 'match');
   characterElement.style.setProperty('--target-color', targetMeta.hex);
   characterElement.style.setProperty('--target-text', targetMeta.textColor);
   characterElement.style.setProperty('--target-glow', targetMeta.hex);
-  targetNameElement.textContent = targetMeta.label;
+  targetNameElement.textContent = `${getRoundTargetLabel(state.round)} ${targetMeta.assistLabel}`;
   feedbackElement.textContent = state.feedback.message;
 
   renderOverlay();

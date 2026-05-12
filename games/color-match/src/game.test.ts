@@ -4,6 +4,7 @@ import {
   createRound,
   getColorForDirection,
   getDirectionForColor,
+  getForbiddenChance,
   getMaxTimeMs,
   getSpeedLevel,
   getTimerDrainMultiplier,
@@ -48,6 +49,29 @@ describe('Color Match engine', () => {
     expect(round.rule).toBe('opposite');
     expect(round.correctColor).toBe('blue');
     expect(round.correctDirection).toBe('down');
+  });
+
+  it('accepts any non-forbidden direction for forbidden rounds', () => {
+    const round = createRound(1, sequenceRandom([0, getTrapChanceForTest(1) + 0.01]));
+    const state = {
+      ...startGame(sequenceRandom([0, 0.99])),
+      round,
+    };
+    const safe = chooseDirection(state, 'right', 1_000, sequenceRandom([0, 0.99]));
+    const forbidden = chooseDirection(state, 'up', 1_000, sequenceRandom([0, 0.99]));
+
+    expect(round.rule).toBe('forbidden');
+    expect(round.acceptedDirections).not.toContain('up');
+    expect(safe.phase).toBe('playing');
+    expect(forbidden.phase).toBe('game-over');
+  });
+
+  it('can ask the player to repeat the previous direction', () => {
+    const roll = getTrapChanceForTest(3) + getForbiddenChance(3) + 0.01;
+    const round = createRound(3, sequenceRandom([0.8, roll]), 'left');
+
+    expect(round.rule).toBe('repeat');
+    expect(round.correctDirection).toBe('left');
   });
 
   it('adds score, streak, time and a new round on correct input', () => {
@@ -112,3 +136,7 @@ describe('Color Match engine', () => {
     expect(next.feedback.kind).toBe('timeout');
   });
 });
+
+function getTrapChanceForTest(speedLevel: number): number {
+  return Math.min(SETTINGS.maxTrapChance, 0.08 + speedLevel * 0.018);
+}

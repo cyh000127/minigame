@@ -186,6 +186,13 @@ button:focus-visible {
   line-height: 1;
 }
 
+.direction em {
+  font-size: 0.68rem;
+  font-style: normal;
+  line-height: 1;
+  opacity: 0.78;
+}
+
 .direction--up {
   grid-area: up;
 }

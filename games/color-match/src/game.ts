@@ -1,6 +1,6 @@
 export type Direction = 'up' | 'right' | 'down' | 'left';
 export type ColorId = 'red' | 'yellow' | 'blue' | 'green';
-export type RoundRule = 'match' | 'opposite';
+export type RoundRule = 'match' | 'opposite' | 'forbidden' | 'repeat';
 export type GamePhase = 'ready' | 'playing' | 'game-over';
 
 export interface DirectionColor {
@@ -8,6 +8,7 @@ export interface DirectionColor {
   readonly color: ColorId;
   readonly label: string;
   readonly keyLabel: string;
+  readonly assistLabel: string;
   readonly hex: string;
   readonly textColor: string;
 }
@@ -17,6 +18,8 @@ export interface Round {
   readonly rule: RoundRule;
   readonly correctColor: ColorId;
   readonly correctDirection: Direction;
+  readonly acceptedDirections: readonly Direction[];
+  readonly forbiddenDirection?: Direction;
 }
 
 export interface Feedback {
@@ -47,6 +50,7 @@ export const DIRECTION_COLORS: readonly DirectionColor[] = [
     color: 'red',
     label: 'RED',
     keyLabel: 'UP',
+    assistLabel: 'R1',
     hex: '#ff3f63',
     textColor: '#fff7fa',
   },
@@ -55,6 +59,7 @@ export const DIRECTION_COLORS: readonly DirectionColor[] = [
     color: 'yellow',
     label: 'YELLOW',
     keyLabel: 'RIGHT',
+    assistLabel: 'Y2',
     hex: '#ffd447',
     textColor: '#15120a',
   },
@@ -63,6 +68,7 @@ export const DIRECTION_COLORS: readonly DirectionColor[] = [
     color: 'blue',
     label: 'BLUE',
     keyLabel: 'DOWN',
+    assistLabel: 'B3',
     hex: '#44d7ff',
     textColor: '#06111a',
   },
@@ -71,6 +77,7 @@ export const DIRECTION_COLORS: readonly DirectionColor[] = [
     color: 'green',
     label: 'GREEN',
     keyLabel: 'LEFT',
+    assistLabel: 'G4',
     hex: '#58f08b',
     textColor: '#061108',
   },
@@ -96,6 +103,8 @@ export const SETTINGS = {
   streakBonus: 18,
   speedBonus: 12,
   maxTrapChance: 0.32,
+  maxForbiddenChance: 0.18,
+  maxRepeatChance: 0.16,
 } as const;
 
 const initialRound: Round = {
@@ -103,6 +112,7 @@ const initialRound: Round = {
   rule: 'match',
   correctColor: 'red',
   correctDirection: 'up',
+  acceptedDirections: ['up'],
 };
 
 export function createReadyState(): ColorMatchState {
@@ -153,8 +163,13 @@ export function chooseDirection(
     return state;
   }
 
-  if (direction !== state.round.correctDirection) {
-    return endGame(state, 'wrong', `WRONG KEY - ${state.round.correctDirection.toUpperCase()}`);
+  if (!isDirectionAccepted(state.round, direction)) {
+    const message =
+      state.round.rule === 'forbidden' && state.round.forbiddenDirection
+        ? `FORBIDDEN - ${state.round.forbiddenDirection.toUpperCase()}`
+        : `WRONG KEY - ${state.round.correctDirection.toUpperCase()}`;
+
+    return endGame(state, 'wrong', message);
   }
 
   const nextCorrectCount = state.correctCount + 1;
@@ -178,7 +193,7 @@ export function chooseDirection(
     maxTimeMs,
     timeLeftMs,
     feverUntilMs,
-    round: createRound(nextSpeedLevel, random),
+    round: createRound(nextSpeedLevel, random, state.round.correctDirection),
     feedback: {
       kind: 'correct',
       message: feverActive ? `FEVER +${scoreGain}` : `GOOD +${scoreGain}`,
@@ -208,18 +223,33 @@ export function tickTimer(
   };
 }
 
-export function createRound(speedLevel: number, random: RandomSource = Math.random): Round {
-  const targetColor = getRandomColor(random);
-  const trapChance = getTrapChance(speedLevel);
-  const rule: RoundRule = random() < trapChance ? 'opposite' : 'match';
-  const correctColor = rule === 'opposite' ? OPPOSITE_COLORS[targetColor] : targetColor;
+export function createRound(
+  speedLevel: number,
+  random: RandomSource = Math.random,
+  previousDirection?: Direction,
+): Round {
+  let targetColor = getRandomColor(random);
+  const rule = getRoundRule(speedLevel, random(), previousDirection);
+  const forbiddenDirection = rule === 'forbidden' ? getDirectionForColor(targetColor) : undefined;
+  const correctColor = resolveCorrectColor(targetColor, rule, previousDirection);
+
+  if (rule === 'repeat') {
+    targetColor = correctColor;
+  }
+
   const correctDirection = getDirectionForColor(correctColor);
+  const acceptedDirections =
+    rule === 'forbidden'
+      ? DIRECTION_COLORS.map((entry) => entry.direction).filter((direction) => direction !== forbiddenDirection)
+      : [correctDirection];
 
   return {
     targetColor,
     rule,
     correctColor,
     correctDirection,
+    acceptedDirections,
+    ...(forbiddenDirection ? { forbiddenDirection } : {}),
   };
 }
 
@@ -283,6 +313,14 @@ export function getTrapChance(speedLevel: number): number {
   return Math.min(SETTINGS.maxTrapChance, 0.08 + speedLevel * 0.018);
 }
 
+export function getForbiddenChance(speedLevel: number): number {
+  return Math.min(SETTINGS.maxForbiddenChance, 0.045 + speedLevel * 0.012);
+}
+
+export function getRepeatChance(speedLevel: number): number {
+  return Math.min(SETTINGS.maxRepeatChance, 0.035 + speedLevel * 0.01);
+}
+
 export function getTimerDrainMultiplier(speedLevel: number, feverActive: boolean): number {
   const speedDrain = 1 + (speedLevel - 1) * 0.08;
   return feverActive ? speedDrain * 0.82 : speedDrain;
@@ -293,7 +331,31 @@ export function isFeverActive(state: Pick<ColorMatchState, 'feverUntilMs'>, nowM
 }
 
 export function getRuleLabel(rule: RoundRule): string {
-  return rule === 'opposite' ? 'OPPOSITE' : 'MATCH';
+  if (rule === 'opposite') {
+    return 'OPPOSITE';
+  }
+
+  if (rule === 'forbidden') {
+    return 'FORBIDDEN';
+  }
+
+  if (rule === 'repeat') {
+    return 'REPEAT';
+  }
+
+  return 'MATCH';
+}
+
+export function getRoundTargetLabel(round: Round): string {
+  if (round.rule === 'forbidden') {
+    return `NO ${getColorMeta(round.targetColor).label}`;
+  }
+
+  if (round.rule === 'repeat') {
+    return `REPEAT ${round.correctDirection.toUpperCase()}`;
+  }
+
+  return getColorMeta(round.targetColor).label;
 }
 
 function getScoreGain(streak: number, speedLevel: number, feverActive: boolean): number {
@@ -314,6 +376,54 @@ function getNextFeverUntilMs(
   }
 
   return state.feverUntilMs;
+}
+
+function isDirectionAccepted(round: Round, direction: Direction): boolean {
+  return round.acceptedDirections.includes(direction);
+}
+
+function getRoundRule(speedLevel: number, roll: number, previousDirection?: Direction): RoundRule {
+  const trapChance = getTrapChance(speedLevel);
+  const forbiddenChance = getForbiddenChance(speedLevel);
+  const repeatChance = previousDirection ? getRepeatChance(speedLevel) : 0;
+
+  if (roll < trapChance) {
+    return 'opposite';
+  }
+
+  if (roll < trapChance + forbiddenChance) {
+    return 'forbidden';
+  }
+
+  if (roll < trapChance + forbiddenChance + repeatChance) {
+    return 'repeat';
+  }
+
+  return 'match';
+}
+
+function resolveCorrectColor(targetColor: ColorId, rule: RoundRule, previousDirection?: Direction): ColorId {
+  if (rule === 'opposite') {
+    return OPPOSITE_COLORS[targetColor];
+  }
+
+  if (rule === 'forbidden') {
+    return getNextSafeColor(targetColor);
+  }
+
+  if (rule === 'repeat' && previousDirection) {
+    return getColorForDirection(previousDirection).color;
+  }
+
+  return targetColor;
+}
+
+function getNextSafeColor(targetColor: ColorId): ColorId {
+  const colors = DIRECTION_COLORS.map((entry) => entry.color);
+  const currentIndex = colors.indexOf(targetColor);
+  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % colors.length;
+
+  return colors[nextIndex]!;
 }
 
 function getRandomColor(random: RandomSource): ColorId {
