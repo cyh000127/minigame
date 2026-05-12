@@ -51,3 +51,4 @@ corepack pnpm run dev
 - [Brick Breaker](games/brick-breaker/README.md)
 - [Color Match](games/color-match/README.md)
 - [2048](games/2048/README.md)
+- [Minesweeper](games/minesweeper/README.md)

@@ -69,6 +69,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#edc22e',
     status: 'playable',
   },
+  {
+    slug: 'minesweeper',
+    title: 'Minesweeper',
+    genre: 'Logic Puzzle',
+    description: '지뢰 위치를 추론하며 모든 안전 칸을 여는 클래식 퍼즐 게임',
+    controls: ['Click', 'Right Click', 'Long Press'],
+    accent: '#5ce6b8',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
