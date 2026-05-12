@@ -55,3 +55,4 @@ corepack pnpm run dev
 - [Snake](games/snake/README.md)
 - [Simon Says](games/simon-says/README.md)
 - [Perfect Stop](games/perfect-stop/README.md)
+- [Type Rain](games/type-rain/README.md)

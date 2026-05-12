@@ -105,6 +105,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#22d3ee',
     status: 'playable',
   },
+  {
+    slug: 'type-rain',
+    title: 'Type Rain',
+    genre: 'Typing Action',
+    description: '떨어지는 단어를 입력해 제거하는 키보드 반응 게임',
+    controls: ['Keyboard', 'Enter', 'Backspace', 'Space'],
+    accent: '#38bdf8',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
