@@ -15,6 +15,7 @@ body {
   min-height: 100vh;
   margin: 0;
   background: #faf8ef;
+  overscroll-behavior: none;
 }
 
 button {
@@ -30,6 +31,15 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible {
+  outline: 3px solid #776e65;
+  outline-offset: 4px;
+}
+
+button[hidden] {
+  display: none;
+}
+
 .game-shell {
   width: min(100%, 760px);
   margin: 0 auto;
@@ -41,6 +51,10 @@ button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
+}
+
+.hero__copy {
+  min-width: 0;
 }
 
 .hero h1 {
@@ -96,16 +110,22 @@ button {
   margin: 0;
 }
 
+.board-wrap {
+  position: relative;
+  width: min(100%, 680px);
+  margin: 0 auto;
+}
+
 .board {
   display: grid;
-  width: min(100%, 680px);
+  width: 100%;
   aspect-ratio: 1;
-  margin: 0 auto;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   border-radius: 8px;
   padding: 16px;
   background: #bbada0;
+  touch-action: none;
 }
 
 .cell {
@@ -124,9 +144,14 @@ button {
   place-items: center;
   border-radius: 5px;
   color: #776e65;
-  font-size: clamp(2.4rem, 10vw, 4.5rem);
+  font-size: clamp(2.3rem, 10vw, 4.5rem);
   font-weight: 900;
   line-height: 1;
+  animation: tile-pop 120ms ease-out;
+}
+
+.cell span[data-digits="4"] {
+  font-size: clamp(1.8rem, 8vw, 3.45rem);
 }
 
 .cell span[data-value="2"] {
@@ -152,7 +177,99 @@ button {
   color: #f9f6f2;
 }
 
+.cell span[data-value="64"] {
+  background: #f65e3b;
+  color: #f9f6f2;
+}
+
+.cell span[data-value="128"] {
+  background: #edcf72;
+  color: #f9f6f2;
+  font-size: clamp(2rem, 8vw, 3.8rem);
+}
+
+.cell span[data-value="256"] {
+  background: #edcc61;
+  color: #f9f6f2;
+  font-size: clamp(2rem, 8vw, 3.8rem);
+}
+
+.cell span[data-value="512"] {
+  background: #edc850;
+  color: #f9f6f2;
+  font-size: clamp(2rem, 8vw, 3.8rem);
+}
+
+.cell span[data-value="1024"] {
+  background: #edc53f;
+  color: #f9f6f2;
+}
+
+.cell span[data-value="2048"] {
+  background: #edc22e;
+  color: #f9f6f2;
+  box-shadow: 0 0 28px rgb(237 194 46 / 0.48);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+  border-radius: 8px;
+  background: rgb(250 248 239 / 0.78);
+  text-align: center;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay p,
+.overlay h2 {
+  margin: 0;
+}
+
+.overlay p {
+  color: #8f7a66;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.overlay h2 {
+  color: #776e65;
+  font-size: clamp(2rem, 8vw, 4rem);
+  line-height: 1;
+}
+
+.overlay__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.game-shell[data-paused="true"] .board {
+  filter: saturate(0.65);
+}
+
+@keyframes tile-pop {
+  from {
+    transform: scale(0.86);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
 @media (max-width: 640px) {
+  .game-shell {
+    padding: 16px 12px 34px;
+  }
+
   .hero,
   .action-row {
     align-items: stretch;
