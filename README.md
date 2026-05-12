@@ -31,6 +31,7 @@ minigame/
 
 - [개발 가이드](docs/development-guide.md)
 - [커밋 컨벤션](docs/commit-convention.md)
+- [미니게임 허브 연동 가이드](docs/minigame-hub.md)
 
 ## 메인 실행기
 
