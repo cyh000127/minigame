@@ -122,6 +122,44 @@ window.addEventListener('message', (event: MessageEvent<MiniGameLifecycleMessage
 
 이 계약은 문서 기반 규칙입니다. 게임은 루트 코드를 import하지 않고, 필요한 타입과 어댑터는 해당 게임 디렉토리 안에 둡니다.
 
+## 로컬 기록과 업적
+
+허브는 개인 로컬 프로젝트 기준으로만 기록을 저장합니다.
+
+- 저장 위치는 브라우저 `localStorage`이며 서버, 계정, DB, 네트워크 동기화를 붙이지 않는다.
+- 저장 키는 `minigame:hub:progress:v1`이다.
+- 허브의 RUN 버튼을 누르면 해당 게임의 실행 횟수와 마지막 실행 시간이 기록된다.
+- 허브의 END 버튼 또는 게임 종료 메시지를 받으면 종료 횟수, 플레이 시간, 점수를 기록한다.
+- 기록 초기화는 허브의 `RESET LOCAL` 버튼으로만 처리한다.
+
+게임은 점수 기록을 허브에 넘기고 싶을 때만 `postMessage`를 보냅니다. 이 메시지는 선택 사항이며, 구현하지 않아도 허브 실행은 동작합니다.
+
+```ts
+window.parent.postMessage(
+  {
+    type: 'minigame:game-over',
+    gameSlug: 'sample-game',
+    score: 1200,
+  },
+  window.origin,
+);
+```
+
+진행 중 점수만 미리 알려주고 싶으면 다음 메시지를 사용할 수 있습니다.
+
+```ts
+window.parent.postMessage(
+  {
+    type: 'minigame:score',
+    gameSlug: 'sample-game',
+    score: 800,
+  },
+  window.origin,
+);
+```
+
+로컬 업적은 허브 안에서만 계산합니다. 현재 기준은 첫 실행, 서로 다른 게임 3개 실행, 누적 실행 10회, 점수 기록 1회, 최고점 1000점 이상, 누적 플레이 5분입니다.
+
 ## 유지보수 규칙
 
 - 허브에 추가되는 정보는 게임 제목, 장르, 설명, 조작키, 실행 상태까지만 둔다.

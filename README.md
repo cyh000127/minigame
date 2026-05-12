@@ -36,6 +36,7 @@ minigame/
 ## 메인 실행기
 
 루트 실행기는 게임 목록을 보여주고 선택한 게임을 `games/<game-name>/index.html`에서 실행합니다.
+허브는 브라우저 `localStorage`만 사용해 개인 로컬 기록과 업적을 표시하며, 서버/계정/멀티플레이 동기화 기능은 붙이지 않습니다.
 
 ```bash
 corepack pnpm install
