@@ -1,0 +1,150 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #081011;
+  color: #f4fbf9;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(90deg, rgb(92 230 184 / 0.1) 0 1px, transparent 1px 72px),
+    linear-gradient(0deg, rgb(255 210 94 / 0.08) 0 1px, transparent 1px 72px),
+    #081011;
+}
+
+button {
+  min-height: 42px;
+  border: 2px solid rgb(244 251 249 / 0.62);
+  border-radius: 6px;
+  padding: 0 16px;
+  background: #102022;
+  color: #f4fbf9;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.shell {
+  display: grid;
+  width: min(100%, 780px);
+  height: 100vh;
+  min-height: 0;
+  margin: 0 auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.topbar p,
+.topbar h1 {
+  margin: 0;
+}
+
+.topbar p,
+.status-panel span {
+  color: #5ce6b8;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.topbar h1 {
+  font-size: clamp(2rem, 7vmin, 4rem);
+  line-height: 1;
+}
+
+.status-panel,
+.difficulty-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.status-panel {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.status-panel > div {
+  display: grid;
+  min-height: 58px;
+  place-items: center;
+  border: 2px solid rgb(244 251 249 / 0.62);
+  border-radius: 8px;
+  background: rgb(16 32 34 / 0.86);
+}
+
+.status-panel strong {
+  color: #ffd25e;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.difficulty-panel {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.difficulty-panel .is-selected {
+  border-color: #5ce6b8;
+  background: #1f4f49;
+}
+
+.board {
+  display: grid;
+  align-self: start;
+  justify-self: center;
+  width: min(100%, 64vh, 620px);
+  aspect-ratio: 1;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  gap: 4px;
+  border: 3px solid #5ce6b8;
+  border-radius: 10px;
+  padding: 8px;
+  background: #102022;
+}
+
+.cell {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  padding: 0;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent),
+    #2b6c63;
+  color: #102022;
+  font-size: clamp(0.8rem, 4vmin, 1.7rem);
+}
+
+.cell--open {
+  background: #d9efe7;
+  color: #143431;
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .board {
+    width: min(100%, 58vh);
+  }
+}
