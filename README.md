@@ -37,3 +37,4 @@ minigame/
 - [Quoridor](games/quoridor/README.md)
 - [Road Racer](games/road-racer/README.md)
 - [Brick Breaker](games/brick-breaker/README.md)
+- [Color Match](games/color-match/README.md)
