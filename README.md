@@ -58,3 +58,4 @@ corepack pnpm run dev
 - [Type Rain](games/type-rain/README.md)
 - [Whack Mole](games/whack-mole/README.md)
 - [Pong Duel](games/pong-duel/README.md)
+- [Memory Flip](games/memory-flip/README.md)

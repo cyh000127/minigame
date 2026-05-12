@@ -132,6 +132,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#22d3ee',
     status: 'playable',
   },
+  {
+    slug: 'memory-flip',
+    title: 'Memory Flip',
+    genre: 'Memory Puzzle',
+    description: '4x4 카드판에서 같은 그림 쌍을 기억해 모두 맞추는 카드 매칭 게임',
+    controls: ['Click', 'Touch', 'Number Keys', 'Space'],
+    accent: '#f97316',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
