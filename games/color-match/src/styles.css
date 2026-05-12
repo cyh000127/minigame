@@ -41,11 +41,12 @@ button:focus-visible {
 .shell {
   display: grid;
   width: min(100%, 980px);
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   margin: 0 auto;
-  padding: 16px;
+  padding: clamp(8px, 1.8vh, 14px);
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 12px;
+  gap: clamp(8px, 1.4vh, 12px);
 }
 
 .scoreboard {
@@ -59,7 +60,7 @@ button:focus-visible {
 
 .metric {
   display: grid;
-  min-height: 72px;
+  min-height: 54px;
   place-items: center;
   border-right: 1px solid rgb(248 251 255 / 0.2);
   padding: 10px;
@@ -97,7 +98,7 @@ button:focus-visible {
   gap: 12px;
   border: 2px solid rgb(248 251 255 / 0.72);
   border-radius: 10px;
-  padding: 12px;
+  padding: 8px 10px;
   background: rgb(10 14 26 / 0.82);
 }
 
@@ -138,7 +139,8 @@ button:focus-visible {
 .arena {
   position: relative;
   display: grid;
-  min-height: 620px;
+  min-height: 0;
+  height: 100%;
   grid-template:
     ". up ." 1fr
     "left center right" 1.2fr
@@ -155,7 +157,7 @@ button:focus-visible {
 
 .direction {
   display: grid;
-  min-height: 112px;
+  min-height: 0;
   place-items: center;
   align-content: center;
   gap: 5px;
@@ -225,7 +227,7 @@ button:focus-visible {
   display: grid;
   align-self: center;
   justify-self: center;
-  width: min(50vw, 250px);
+  width: min(42vw, 210px, 34vh);
   gap: 10px;
   justify-items: center;
   text-align: center;
@@ -293,7 +295,7 @@ button:focus-visible {
 .feedback {
   position: absolute;
   left: 50%;
-  bottom: 18px;
+  bottom: 12px;
   min-width: min(420px, calc(100% - 36px));
   transform: translateX(-50%);
   border: 2px solid rgb(248 251 255 / 0.5);
@@ -390,13 +392,12 @@ button:focus-visible {
   }
 
   .arena {
-    min-height: 560px;
     gap: 10px;
     padding: 12px;
   }
 
   .direction {
-    min-height: 86px;
+    min-height: 0;
   }
 
   .target-card {
@@ -410,7 +411,6 @@ button:focus-visible {
 
 @media (max-width: 460px) {
   .arena {
-    min-height: 500px;
     grid-template:
       ". up ." 0.9fr
       "left center right" 1fr

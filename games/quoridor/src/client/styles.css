@@ -48,12 +48,16 @@ button:not(:disabled):hover {
 
 .app-shell {
   width: min(1160px, calc(100% - 32px));
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 48px 0;
+  padding: clamp(14px, 2vh, 24px) 0;
 }
 
 .app-shell--game {
   width: min(1440px, calc(100% - 32px));
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .hero,
@@ -75,8 +79,8 @@ button:not(:disabled):hover {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 20px;
-  padding: 24px;
+  margin-bottom: clamp(10px, 1.5vh, 16px);
+  padding: clamp(14px, 2vh, 20px);
 }
 
 .eyebrow {
@@ -95,7 +99,7 @@ p {
 
 h1 {
   margin-bottom: 8px;
-  font-size: 3.6rem;
+  font-size: clamp(2.4rem, 6vmin, 3.2rem);
   line-height: 1;
   letter-spacing: 0;
 }
@@ -203,8 +207,9 @@ h2 {
 .game-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-  gap: 20px;
+  gap: clamp(12px, 1.6vw, 20px);
   align-items: start;
+  min-height: 0;
 }
 
 .board-column {
@@ -270,14 +275,14 @@ h2 {
 
 .quoridor-board-surface {
   display: grid;
-  width: min(100%, 720px);
+  width: min(100%, calc(100vh - 140px), 680px);
 }
 
 .quoridor-board {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr) minmax(4px, 0.14fr)) minmax(0, 1fr);
   grid-template-rows: repeat(8, minmax(0, 1fr) minmax(4px, 0.14fr)) minmax(0, 1fr);
-  width: min(100%, 680px);
+  width: min(100%, calc(100vh - 150px), 640px);
   aspect-ratio: 1;
   gap: 0;
   border: 1px solid rgba(255, 255, 255, 0.14);

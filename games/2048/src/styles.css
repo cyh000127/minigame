@@ -41,9 +41,14 @@ button[hidden] {
 }
 
 .game-shell {
+  display: grid;
   width: min(100%, 760px);
+  height: 100vh;
+  min-height: 0;
   margin: 0 auto;
-  padding: 24px 18px 48px;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: clamp(8px, 1.5vh, 14px);
+  padding: clamp(10px, 2vh, 18px) 18px;
 }
 
 .hero {
@@ -60,15 +65,15 @@ button[hidden] {
 .hero h1 {
   margin: 0;
   color: #776e65;
-  font-size: clamp(5rem, 18vw, 8.5rem);
+  font-size: clamp(3.4rem, 12vmin, 6rem);
   line-height: 0.85;
 }
 
 .hero p,
 .action-row p {
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   color: #776e65;
-  font-size: clamp(1.05rem, 3vw, 1.6rem);
+  font-size: clamp(0.98rem, 2.4vmin, 1.35rem);
   line-height: 1.35;
 }
 
@@ -79,8 +84,8 @@ button[hidden] {
 
 .score-panel > div {
   display: grid;
-  min-width: 112px;
-  min-height: 70px;
+  min-width: 96px;
+  min-height: 58px;
   place-items: center;
   border-radius: 5px;
   padding: 9px 14px;
@@ -94,7 +99,7 @@ button[hidden] {
 }
 
 .score-panel strong {
-  font-size: 2rem;
+  font-size: 1.7rem;
   line-height: 1;
 }
 
@@ -103,7 +108,8 @@ button[hidden] {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin: 22px 0 34px;
+  flex-wrap: wrap;
+  margin: 0;
 }
 
 .action-row p {
@@ -112,13 +118,21 @@ button[hidden] {
 
 .board-wrap {
   position: relative;
-  width: min(100%, 680px);
+  align-self: stretch;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 600px;
+  min-height: 0;
+  aspect-ratio: 1;
   margin: 0 auto;
 }
 
 .board {
   display: grid;
   width: 100%;
+  height: 100%;
   aspect-ratio: 1;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
@@ -265,15 +279,19 @@ button[hidden] {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .game-shell {
-    padding: 16px 12px 34px;
+    padding: 12px;
   }
 
   .hero,
   .action-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .hero h1 {
+    font-size: clamp(3rem, 11vmin, 4.8rem);
   }
 
   .score-panel {
@@ -285,7 +303,11 @@ button[hidden] {
   }
 
   .board {
-    gap: 10px;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .board-wrap {
+    max-height: 480px;
   }
 }
