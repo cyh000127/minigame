@@ -40,6 +40,7 @@ corepack pnpm run test
 - 실패하면 목숨이 1개 줄고, 목숨이 0개가 되면 게임이 종료됩니다.
 - 12라운드를 넘기면 클리어입니다.
 - 최고 점수는 브라우저 `localStorage`에 저장됩니다.
+- 실행기에서 보내는 `start`, `pause`, `gameOver`, `reset` 제어 메시지를 처리할 수 있습니다.
 
 ## 구조
 
