@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import {
+  cloneQuoridorSnapshot,
   eventNames,
   type EntryIntentPayload,
   type QuoridorActionIntentPayload,
   type QuoridorPlayerCount,
   type QuoridorPlayerState,
+  type QuoridorSnapshot,
   type RejectedIntentPayload,
   type RoomJoinAcceptedPayload
 } from '../shared/index.js';
@@ -13,6 +15,7 @@ import { QuoridorBoard } from './QuoridorBoard.js';
 
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
 type ActionMode = 'move' | 'wall';
+type ReviewIndex = number | null;
 
 function normalizePlayerIdentity(playerName: string): string {
   return playerName.trim().toLowerCase();
@@ -45,6 +48,41 @@ function createInitialEntry(): EntryIntentPayload {
   };
 }
 
+function createSnapshotHistoryKey(snapshot: QuoridorSnapshot): string {
+  return JSON.stringify({
+    players: snapshot.players.map((player) => ({
+      name: player.playerName,
+      row: player.position.row,
+      col: player.position.col,
+      walls: player.wallsRemaining
+    })),
+    wallCount: snapshot.walls.length,
+    turn: snapshot.turnPlayerName,
+    winner: snapshot.winnerPlayerName,
+    lastAction: snapshot.lastAction
+  });
+}
+
+function describeLastAction(snapshot: QuoridorSnapshot): string {
+  if (!snapshot.lastAction) {
+    return 'Initial board';
+  }
+
+  if (snapshot.lastAction.actionType === 'move-pawn' && snapshot.lastAction.destination) {
+    return `${snapshot.lastAction.playerName} moved to R${snapshot.lastAction.destination.row + 1} C${
+      snapshot.lastAction.destination.col + 1
+    }`;
+  }
+
+  if (snapshot.lastAction.actionType === 'place-wall' && snapshot.lastAction.wall) {
+    return `${snapshot.lastAction.playerName} placed ${snapshot.lastAction.wall.orientation} wall at R${
+      snapshot.lastAction.wall.row + 1
+    } C${snapshot.lastAction.wall.col + 1}`;
+  }
+
+  return `${snapshot.lastAction.playerName} acted`;
+}
+
 export function App() {
   const socketRef = useRef<Socket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
@@ -52,18 +90,24 @@ export function App() {
   const [joinedRoom, setJoinedRoom] = useState<RoomJoinAcceptedPayload | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [actionMode, setActionMode] = useState<ActionMode>('move');
-  const snapshot = joinedRoom?.room.quoridor ?? null;
-  const viewer = snapshot ? resolveViewerPlayer(snapshot.players, joinedRoom.viewerPlayerName) : null;
+  const [turnHistory, setTurnHistory] = useState<QuoridorSnapshot[]>([]);
+  const [reviewIndex, setReviewIndex] = useState<ReviewIndex>(null);
+  const liveSnapshot = joinedRoom?.room.quoridor ?? null;
+  const reviewingSnapshot = reviewIndex == null ? null : turnHistory[reviewIndex] ?? null;
+  const snapshot = reviewingSnapshot ?? liveSnapshot;
+  const reviewingTurns = reviewingSnapshot != null;
+  const viewer = snapshot && joinedRoom ? resolveViewerPlayer(snapshot.players, joinedRoom.viewerPlayerName) : null;
   const viewerTurn =
-    snapshot != null &&
+    liveSnapshot != null &&
     viewer != null &&
-    normalizePlayerIdentity(snapshot.turnPlayerName) === normalizePlayerIdentity(joinedRoom?.viewerPlayerName ?? '');
+    normalizePlayerIdentity(liveSnapshot.turnPlayerName) === normalizePlayerIdentity(joinedRoom?.viewerPlayerName ?? '');
   const controlsInteractive =
     connectionStatus === 'connected' &&
     joinedRoom?.room.roomPhase === 'in-game' &&
-    snapshot != null &&
+    liveSnapshot != null &&
     viewerTurn &&
-    snapshot.winnerPlayerName == null;
+    liveSnapshot.winnerPlayerName == null &&
+    !reviewingTurns;
   const canPlaceWalls = controlsInteractive && viewer != null && viewer.wallsRemaining > 0;
   const roomIsReady = joinedRoom ? joinedRoom.room.players.length === joinedRoom.room.playerCount : false;
   const viewerIsHost = joinedRoom
@@ -85,6 +129,19 @@ export function App() {
     });
     socket.on(eventNames.roomJoined, (payload: RoomJoinAcceptedPayload) => {
       setJoinedRoom(payload);
+      setReviewIndex(null);
+      if (payload.room.quoridor) {
+        const nextSnapshot = cloneQuoridorSnapshot(payload.room.quoridor);
+        setTurnHistory((currentHistory) => {
+          const latestSnapshot = currentHistory.at(-1);
+          const nextKey = createSnapshotHistoryKey(nextSnapshot);
+          const latestKey = latestSnapshot ? createSnapshotHistoryKey(latestSnapshot) : null;
+
+          return latestKey === nextKey ? currentHistory : [...currentHistory, nextSnapshot].slice(-24);
+        });
+      } else {
+        setTurnHistory([]);
+      }
       setNotice(null);
     });
     socket.on(eventNames.roomJoinRejected, (payload: RejectedIntentPayload) => {
@@ -264,7 +321,10 @@ export function App() {
         <div className="topbar__badges">
           <span className={`status status--${connectionStatus}`}>{connectionStatus}</span>
           <span className="pill">{joinedRoom.room.roomPhase}</span>
-          {snapshot ? <span className="pill">{viewerTurn ? 'your turn' : `${snapshot.turnPlayerName}'s turn`}</span> : null}
+          {liveSnapshot ? (
+            <span className="pill">{viewerTurn ? 'your turn' : `${liveSnapshot.turnPlayerName}'s turn`}</span>
+          ) : null}
+          {reviewingTurns ? <span className="pill pill--review">review turn {(reviewIndex ?? 0) + 1}</span> : null}
         </div>
       </header>
 
@@ -324,6 +384,7 @@ export function App() {
                 <span>Turn action</span>
                 <strong>{viewer?.wallsRemaining ?? 0} walls</strong>
               </div>
+              {reviewingTurns ? <p className="helper-text">Turn review is active. Return live to play.</p> : null}
               <div className="segmented">
                 <button
                   type="button"
@@ -346,6 +407,59 @@ export function App() {
                   Wall
                 </button>
               </div>
+            </section>
+          ) : null}
+
+          {snapshot ? (
+            <section className="panel">
+              <div className="panel__header">
+                <span>Turn review</span>
+                <strong>{turnHistory.length} states</strong>
+              </div>
+              <div className="review-controls">
+                <button
+                  type="button"
+                  disabled={turnHistory.length === 0}
+                  onClick={() => {
+                    setReviewIndex((current) =>
+                      current == null ? Math.max(0, turnHistory.length - 2) : Math.max(0, current - 1)
+                    );
+                  }}
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  disabled={turnHistory.length === 0 || reviewIndex == null || reviewIndex >= turnHistory.length - 1}
+                  onClick={() => {
+                    setReviewIndex((current) =>
+                      current == null ? null : Math.min(turnHistory.length - 1, current + 1)
+                    );
+                  }}
+                >
+                  Next
+                </button>
+                <button type="button" disabled={!reviewingTurns} onClick={() => setReviewIndex(null)}>
+                  Live
+                </button>
+              </div>
+              <ol className="turn-log">
+                {turnHistory.slice(-6).map((historySnapshot, index, visibleHistory) => {
+                  const absoluteIndex = turnHistory.length - visibleHistory.length + index;
+
+                  return (
+                    <li key={createSnapshotHistoryKey(historySnapshot)}>
+                      <button
+                        type="button"
+                        className={reviewIndex === absoluteIndex ? 'selected' : ''}
+                        onClick={() => setReviewIndex(absoluteIndex)}
+                      >
+                        {describeLastAction(historySnapshot)}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
             </section>
           ) : null}
 

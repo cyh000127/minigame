@@ -67,6 +67,10 @@ export function QuoridorBoard({
             );
             const occupiedByViewer = player ? normalizePlayerIdentity(player.playerName) === viewerKey : false;
             const legal = legalMoves.has(key);
+            const lastMove =
+              snapshot.lastAction?.actionType === 'move-pawn' &&
+              snapshot.lastAction.destination?.row === row &&
+              snapshot.lastAction.destination.col === col;
 
             return (
               <button
@@ -76,7 +80,8 @@ export function QuoridorBoard({
                   'quoridor-cell',
                   playerLabel ? 'quoridor-cell--occupied' : '',
                   occupiedByViewer ? 'quoridor-cell--viewer' : '',
-                  legal ? 'quoridor-cell--legal' : ''
+                  legal ? 'quoridor-cell--legal' : '',
+                  lastMove ? 'quoridor-cell--last-move' : ''
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -115,6 +120,10 @@ export function QuoridorBoard({
                 canPlaceWalls &&
                 !placed &&
                 canPlaceQuoridorWall(snapshot, wall);
+              const lastWall =
+                snapshot.lastAction?.actionType === 'place-wall' &&
+                snapshot.lastAction.wall != null &&
+                wallKey(snapshot.lastAction.wall) === wallKey(wall);
 
               return (
                 <button
@@ -124,7 +133,8 @@ export function QuoridorBoard({
                     'quoridor-wall-slot',
                     `quoridor-wall-slot--${wall.orientation}`,
                     placed ? 'quoridor-wall-slot--placed' : '',
-                    available ? 'quoridor-wall-slot--available' : ''
+                    available ? 'quoridor-wall-slot--available' : '',
+                    lastWall ? 'quoridor-wall-slot--last' : ''
                   ]
                     .filter(Boolean)
                     .join(' ')}

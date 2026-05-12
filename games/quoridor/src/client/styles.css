@@ -197,6 +197,11 @@ h2 {
   color: #ffb3b3;
 }
 
+.pill--review {
+  background: rgba(127, 220, 114, 0.16);
+  color: #a8ef9e;
+}
+
 .topbar__badges,
 .segmented {
   display: flex;
@@ -245,9 +250,35 @@ h2 {
   flex: 1;
 }
 
-.segmented .selected {
+.segmented .selected,
+.turn-log .selected {
   border-color: rgba(255, 122, 77, 0.9);
   background: rgba(255, 122, 77, 0.18);
+}
+
+.review-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.turn-log {
+  display: grid;
+  gap: 8px;
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: auto;
+}
+
+.turn-log button {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  text-align: left;
+  font-size: 0.82rem;
 }
 
 .player-list {
@@ -324,6 +355,10 @@ h2 {
   outline-offset: -3px;
 }
 
+.quoridor-cell--last-move {
+  box-shadow: inset 0 0 0 3px rgba(255, 203, 119, 0.78);
+}
+
 .quoridor-cell__pawn {
   display: grid;
   place-items: center;
@@ -351,6 +386,12 @@ h2 {
 .quoridor-wall-slot--placed {
   background: #ff9f72;
   box-shadow: 0 0 0 1px rgba(255, 214, 195, 0.46);
+}
+
+.quoridor-wall-slot--last {
+  box-shadow:
+    0 0 0 2px rgba(255, 203, 119, 0.72),
+    0 0 16px rgba(255, 203, 119, 0.34);
 }
 
 .quoridor-wall-slot--available {
