@@ -38,7 +38,7 @@ corepack pnpm run test
 - 먹이 5개 단위로 이동 속도 단계가 올라갑니다.
 - 벽이나 자신의 몸과 충돌하면 게임이 종료됩니다.
 - 최고 점수는 브라우저 `localStorage`에 저장됩니다.
-- 실행기에서 보내는 `start`, `pause`, `reset` 제어 메시지를 처리할 수 있습니다.
+- 실행기에서 보내는 `start`, `pause`, `gameOver`, `reset` 제어 메시지를 처리할 수 있습니다.
 
 ## 구조
 

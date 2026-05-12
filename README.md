@@ -52,3 +52,4 @@ corepack pnpm run dev
 - [Color Match](games/color-match/README.md)
 - [2048](games/2048/README.md)
 - [Minesweeper](games/minesweeper/README.md)
+- [Snake](games/snake/README.md)

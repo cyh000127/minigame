@@ -179,6 +179,11 @@ function handleHubMessage(event: MessageEvent): void {
     return;
   }
 
+  if (action === 'gameOver') {
+    finishFromHub();
+    return;
+  }
+
   if (action === 'reset') {
     restartGame();
   }
@@ -235,6 +240,18 @@ function restartGame(): void {
   cancelLoop();
   state = createGameState(Math.random, readBestScore());
   lastStepTime = 0;
+  render();
+}
+
+function finishFromHub(): void {
+  cancelLoop();
+  const bestScore = Math.max(state.bestScore, state.score);
+  state = {
+    ...state,
+    phase: 'game-over',
+    bestScore,
+  };
+  persistBestScore(bestScore);
   render();
 }
 
@@ -396,7 +413,7 @@ function queryElement<T extends HTMLElement>(selector: string): T {
   return element;
 }
 
-function getHubAction(value: unknown): 'start' | 'pause' | 'reset' | null {
+function getHubAction(value: unknown): 'start' | 'pause' | 'gameOver' | 'reset' | null {
   if (!value || typeof value !== 'object') {
     return null;
   }
@@ -406,6 +423,7 @@ function getHubAction(value: unknown): 'start' | 'pause' | 'reset' | null {
     command?: unknown;
     gameSlug?: unknown;
     slug?: unknown;
+    source?: unknown;
     type?: unknown;
   };
   const targetSlug = message.gameSlug ?? message.slug;
@@ -415,6 +433,13 @@ function getHubAction(value: unknown): 'start' | 'pause' | 'reset' | null {
   }
 
   const action = message.action ?? message.command;
+
+  if (
+    message.source === 'minigame-hub' &&
+    (action === 'start' || action === 'pause' || action === 'gameOver')
+  ) {
+    return action;
+  }
 
   if (
     message.type === 'minigame:control' &&

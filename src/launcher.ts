@@ -78,6 +78,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#5ce6b8',
     status: 'playable',
   },
+  {
+    slug: 'snake',
+    title: 'Snake',
+    genre: 'Arcade Survival',
+    description: '먹이를 먹으며 길어지는 뱀을 벽과 몸에 부딪히지 않게 조종하는 게임',
+    controls: ['Arrow Keys', 'WASD', 'Space'],
+    accent: '#5bff7d',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
