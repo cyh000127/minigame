@@ -159,6 +159,16 @@ button:focus-visible {
   box-shadow: 0 0 26px rgb(249 115 22 / 0.3);
 }
 
+.bonus-zone {
+  position: absolute;
+  top: 32px;
+  bottom: 32px;
+  border: 2px solid #22d3ee;
+  border-radius: 8px;
+  background: rgb(34 211 238 / 0.26);
+  box-shadow: 0 0 20px rgb(34 211 238 / 0.28);
+}
+
 .center-line {
   position: absolute;
   top: 10px;

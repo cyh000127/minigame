@@ -3,11 +3,13 @@ import {
   ROUND_LIMIT,
   advanceRound,
   createGameState,
+  createBonusZones,
   createTargetZone,
   evaluateStop,
   forceGameOver,
   getCursorSpeed,
   getResultLabel,
+  getTargetDriftSpeed,
   getZoneWidth,
   pauseGame,
   resumeGame,
@@ -42,6 +44,19 @@ describe('perfect stop engine', () => {
 
     expect(nextState.cursor).toBeCloseTo(0.21);
     expect(nextState.direction).toBe(1);
+  });
+
+  it('moves the target zone in later rounds', () => {
+    const state: PerfectStopState = {
+      ...startGame(createGameState(), () => 0.5),
+      round: 5,
+      target: { center: 0.5, width: 0.2 },
+      targetDirection: 1,
+    };
+    const nextState = tickGame(state, 1_000);
+
+    expect(getTargetDriftSpeed(3)).toBe(0);
+    expect(nextState.target.center).toBeGreaterThan(0.5);
   });
 
   it('bounces the cursor at meter edges', () => {
@@ -145,7 +160,11 @@ describe('perfect stop engine', () => {
     expect(getZoneWidth(50)).toBe(0.08);
     expect(createTargetZone(1, () => 0.5)).toEqual({ center: 0.5, width: 0.3 });
     expect(evaluateStop(0.5, { center: 0.5, width: 0.2 }, 2, 0).message).toBe('perfect');
-    expect(getResultLabel({ success: false, accuracy: 0, points: 0, message: 'miss' })).toBe('MISS');
+    expect(
+      evaluateStop(0.5, { center: 0.5, width: 0.2 }, 2, 0, [{ center: 0.5, width: 0.05 }]).bonus,
+    ).toBe(true);
+    expect(createBonusZones(2)).toEqual([]);
+    expect(getResultLabel({ success: false, accuracy: 0, points: 0, bonus: false, message: 'miss' })).toBe('MISS');
   });
 
   it('forces game over while preserving best score', () => {

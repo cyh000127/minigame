@@ -73,6 +73,8 @@ appRoot.innerHTML = `
 
     <section class="stage" aria-label="Perfect Stop play area">
       <section class="meter" data-meter aria-label="Timing meter">
+        <span class="bonus-zone" data-bonus-zone="0"></span>
+        <span class="bonus-zone" data-bonus-zone="1"></span>
         <span class="zone" data-zone></span>
         <span class="center-line" aria-hidden="true"></span>
         <span class="cursor" data-cursor></span>
@@ -88,6 +90,7 @@ appRoot.innerHTML = `
 const shell = queryElement<HTMLElement>('[data-shell]');
 const meter = queryElement<HTMLElement>('[data-meter]');
 const zoneElement = queryElement<HTMLElement>('[data-zone]');
+const bonusZoneElements = Array.from(appRoot.querySelectorAll<HTMLElement>('[data-bonus-zone]'));
 const cursorElement = queryElement<HTMLElement>('[data-cursor]');
 const scoreElement = queryElement<HTMLElement>('[data-score]');
 const bestElement = queryElement<HTMLElement>('[data-best]');
@@ -289,6 +292,18 @@ function render(): void {
   shell.dataset.phase = state.phase;
   zoneElement.style.left = `${(state.target.center - state.target.width / 2) * 100}%`;
   zoneElement.style.width = `${state.target.width * 100}%`;
+  bonusZoneElements.forEach((element, index) => {
+    const zone = state.bonusZones[index];
+
+    element.hidden = !zone;
+
+    if (!zone) {
+      return;
+    }
+
+    element.style.left = `${(zone.center - zone.width / 2) * 100}%`;
+    element.style.width = `${zone.width * 100}%`;
+  });
   cursorElement.style.left = `${state.cursor * 100}%`;
   scoreElement.textContent = formatScore(state.score);
   bestElement.textContent = formatScore(state.bestScore);
@@ -345,7 +360,7 @@ function getStatusHelp(current: PerfectStopState): string {
 
   if (current.phase === 'feedback') {
     const points = current.lastResult?.points ?? 0;
-    return points > 0 ? `+${points} POINTS` : 'NEXT ROUND';
+    return points > 0 ? `+${points} POINTS${current.lastResult?.bonus ? ' BONUS' : ''}` : 'NEXT ROUND';
   }
 
   return 'SPACE / CLICK';
