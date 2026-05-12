@@ -38,6 +38,7 @@ appRoot.innerHTML = `
         <h1>Snake</h1>
       </div>
       <div class="actions">
+        <button type="button" data-action="obstacle">Obstacles Off</button>
         <button type="button" data-action="toggle">Start</button>
         <button type="button" data-action="restart">New</button>
       </div>
@@ -76,6 +77,7 @@ const bestElement = queryElement<HTMLElement>('[data-best]');
 const speedElement = queryElement<HTMLElement>('[data-speed]');
 const toggleButton = queryElement<HTMLButtonElement>('[data-action="toggle"]');
 const restartButton = queryElement<HTMLButtonElement>('[data-action="restart"]');
+const obstacleButton = queryElement<HTMLButtonElement>('[data-action="obstacle"]');
 const statusTitle = queryElement<HTMLElement>('[data-status-title]');
 const statusHelp = queryElement<HTMLElement>('[data-status-help]');
 const cellElements = new Map<string, HTMLElement>();
@@ -85,6 +87,7 @@ render();
 
 toggleButton.addEventListener('click', togglePlay);
 restartButton.addEventListener('click', restartGame);
+obstacleButton.addEventListener('click', toggleObstacleMode);
 window.addEventListener('keydown', handleKeyDown);
 board.addEventListener('pointerdown', handlePointerDown);
 board.addEventListener('pointerup', handlePointerUp);
@@ -238,7 +241,16 @@ function pause(): void {
 
 function restartGame(): void {
   cancelLoop();
-  state = createGameState(Math.random, readBestScore());
+  state = createGameState(Math.random, readBestScore(), state.obstacleMode);
+  lastStepTime = 0;
+  render();
+}
+
+function toggleObstacleMode(): void {
+  const nextObstacleMode = !state.obstacleMode;
+
+  cancelLoop();
+  state = createGameState(Math.random, readBestScore(), nextObstacleMode);
   lastStepTime = 0;
   render();
 }
@@ -303,6 +315,7 @@ function tick(time: number): void {
 
 function render(): void {
   const snakeKeys = new Set(state.snake.map(getCellKey));
+  const obstacleKeys = new Set(state.obstacles.map(getCellKey));
   const headKey = getCellKey(state.snake[0] ?? state.food);
   const foodKey = getCellKey(state.food);
 
@@ -310,16 +323,19 @@ function render(): void {
     const isHead = key === headKey;
     const isSnake = snakeKeys.has(key);
     const isFood = key === foodKey;
+    const isObstacle = obstacleKeys.has(key);
 
     cell.className = [
       'cell',
+      isObstacle ? 'cell--obstacle' : '',
       isSnake ? 'cell--snake' : '',
       isHead ? 'cell--head' : '',
       isFood ? 'cell--food' : '',
+      isFood && state.foodKind === 'bonus' ? 'cell--bonus-food' : '',
     ]
       .filter(Boolean)
       .join(' ');
-    cell.setAttribute('aria-label', getCellLabel(isHead, isSnake, isFood));
+    cell.setAttribute('aria-label', getCellLabel(isHead, isSnake, isFood, isObstacle));
   }
 
   shell.dataset.phase = state.phase;
@@ -327,12 +343,13 @@ function render(): void {
   bestElement.textContent = formatScore(state.bestScore);
   speedElement.textContent = String(getSpeedLevel(state.score)).padStart(2, '0');
   toggleButton.textContent = getToggleLabel(state);
+  obstacleButton.textContent = state.obstacleMode ? 'Obstacles On' : 'Obstacles Off';
   overlay.hidden = state.phase === 'playing';
   statusTitle.textContent = getStatusTitle(state);
   statusHelp.textContent = getStatusHelp(state);
 }
 
-function getCellLabel(isHead: boolean, isSnake: boolean, isFood: boolean): string {
+function getCellLabel(isHead: boolean, isSnake: boolean, isFood: boolean, isObstacle: boolean): string {
   if (isHead) {
     return 'snake head';
   }
@@ -343,6 +360,10 @@ function getCellLabel(isHead: boolean, isSnake: boolean, isFood: boolean): strin
 
   if (isFood) {
     return 'food';
+  }
+
+  if (isObstacle) {
+    return 'obstacle';
   }
 
   return 'empty';

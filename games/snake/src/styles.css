@@ -165,6 +165,18 @@ button:focus-visible {
   box-shadow: 0 0 15px rgb(255 214 82 / 0.55);
 }
 
+.cell--bonus-food {
+  background: #ff6bd6;
+  box-shadow: 0 0 18px rgb(255 107 214 / 0.62);
+}
+
+.cell--obstacle {
+  border-color: rgb(244 255 246 / 0.18);
+  background:
+    linear-gradient(135deg, transparent 0 38%, #ffd652 39% 50%, transparent 51%),
+    #243128;
+}
+
 .overlay {
   position: absolute;
   top: 50%;
@@ -211,7 +223,7 @@ button:focus-visible {
 
   .actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .brand h1 {

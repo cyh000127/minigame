@@ -1,5 +1,6 @@
 export type Direction = 'up' | 'right' | 'down' | 'left';
 export type GamePhase = 'ready' | 'playing' | 'paused' | 'game-over' | 'won';
+export type FoodKind = 'normal' | 'bonus';
 export type RandomSource = () => number;
 
 export interface Position {
@@ -14,6 +15,9 @@ export interface SnakeState {
   readonly direction: Direction;
   readonly pendingDirection: Direction;
   readonly food: Position;
+  readonly foodKind: FoodKind;
+  readonly obstacles: readonly Position[];
+  readonly obstacleMode: boolean;
   readonly score: number;
   readonly bestScore: number;
   readonly moveCount: number;
@@ -21,6 +25,7 @@ export interface SnakeState {
 
 export const GRID_SIZE = 15;
 export const SCORE_PER_FOOD = 10;
+export const SCORE_PER_BONUS_FOOD = 30;
 export const SPEED_UP_EVERY = 5;
 export const INITIAL_STEP_MS = 170;
 export const MIN_STEP_MS = 70;
@@ -28,6 +33,7 @@ export const MIN_STEP_MS = 70;
 export function createGameState(
   random: RandomSource = Math.random,
   bestScore = 0,
+  obstacleMode = false,
 ): SnakeState {
   const center = Math.floor(GRID_SIZE / 2);
   const snake: readonly Position[] = [
@@ -35,6 +41,8 @@ export function createGameState(
     { row: center, column: center },
     { row: center, column: center - 1 },
   ];
+  const obstacles = obstacleMode ? createObstacles(GRID_SIZE, snake) : [];
+  const nextFood = createNextFood(GRID_SIZE, snake, obstacles, random);
 
   return {
     gridSize: GRID_SIZE,
@@ -42,7 +50,10 @@ export function createGameState(
     snake,
     direction: 'right',
     pendingDirection: 'right',
-    food: spawnFood(GRID_SIZE, snake, random),
+    food: nextFood.food,
+    foodKind: nextFood.kind,
+    obstacles,
+    obstacleMode,
     score: 0,
     bestScore,
     moveCount: 0,
@@ -95,10 +106,12 @@ export function stepGame(
   const nextHead = movePosition(head, nextDirection);
   const willEat = positionsEqual(nextHead, state.food);
   const nextBodyWithoutTail = willEat ? state.snake : state.snake.slice(0, -1);
+  const obstacles = state.obstacles;
 
   if (
     isOutOfBounds(nextHead, state.gridSize) ||
-    nextBodyWithoutTail.some((part) => positionsEqual(part, nextHead))
+    nextBodyWithoutTail.some((part) => positionsEqual(part, nextHead)) ||
+    obstacles.some((obstacle) => positionsEqual(obstacle, nextHead))
   ) {
     return {
       ...state,
@@ -111,8 +124,9 @@ export function stepGame(
 
   const snake = [nextHead, ...state.snake];
   const nextSnake = willEat ? snake : snake.slice(0, -1);
-  const score = willEat ? state.score + SCORE_PER_FOOD : state.score;
-  const phase = nextSnake.length === state.gridSize * state.gridSize ? 'won' : 'playing';
+  const score = willEat ? state.score + getFoodScore(state.foodKind) : state.score;
+  const phase = nextSnake.length === state.gridSize * state.gridSize - obstacles.length ? 'won' : 'playing';
+  const nextFood = willEat ? createNextFood(state.gridSize, nextSnake, obstacles, random) : null;
 
   return {
     ...state,
@@ -120,7 +134,8 @@ export function stepGame(
     snake: nextSnake,
     direction: nextDirection,
     pendingDirection: nextDirection,
-    food: willEat ? spawnFood(state.gridSize, nextSnake, random) : state.food,
+    food: nextFood?.food ?? state.food,
+    foodKind: nextFood?.kind ?? state.foodKind,
     score,
     bestScore: Math.max(state.bestScore, score),
     moveCount: state.moveCount + 1,
@@ -131,6 +146,7 @@ export function spawnFood(
   gridSize: number,
   snake: readonly Position[],
   random: RandomSource = Math.random,
+  blocked: readonly Position[] = [],
 ): Position {
   const emptyCells: Position[] = [];
 
@@ -138,7 +154,10 @@ export function spawnFood(
     for (let column = 0; column < gridSize; column += 1) {
       const position = { row, column };
 
-      if (!snake.some((part) => positionsEqual(part, position))) {
+      if (
+        !snake.some((part) => positionsEqual(part, position)) &&
+        !blocked.some((part) => positionsEqual(part, position))
+      ) {
         emptyCells.push(position);
       }
     }
@@ -156,6 +175,23 @@ export function spawnFood(
   }
 
   return food;
+}
+
+export function createObstacles(gridSize: number, snake: readonly Position[]): readonly Position[] {
+  const candidates: readonly Position[] = [
+    { row: 3, column: 3 },
+    { row: 3, column: gridSize - 4 },
+    { row: gridSize - 4, column: 3 },
+    { row: gridSize - 4, column: gridSize - 4 },
+    { row: Math.floor(gridSize / 2), column: 2 },
+    { row: Math.floor(gridSize / 2), column: gridSize - 3 },
+  ];
+
+  return candidates.filter((candidate) => !snake.some((part) => positionsEqual(part, candidate)));
+}
+
+export function getFoodScore(kind: FoodKind): number {
+  return kind === 'bonus' ? SCORE_PER_BONUS_FOOD : SCORE_PER_FOOD;
 }
 
 export function getStepDurationMs(score: number): number {
@@ -206,6 +242,21 @@ function getHead(state: Pick<SnakeState, 'snake'>): Position {
   }
 
   return head;
+}
+
+function createNextFood(
+  gridSize: number,
+  snake: readonly Position[],
+  obstacles: readonly Position[],
+  random: RandomSource,
+): { readonly food: Position; readonly kind: FoodKind } {
+  const food = spawnFood(gridSize, snake, random, obstacles);
+  const kind: FoodKind = random() < 0.18 ? 'bonus' : 'normal';
+
+  return {
+    food,
+    kind,
+  };
 }
 
 function movePosition(position: Position, direction: Direction): Position {

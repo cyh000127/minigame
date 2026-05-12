@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   createGameState,
   getKeyboardDirection,
+  getFoodScore,
   getSpeedLevel,
   getStepDurationMs,
   queueDirection,
+  SCORE_PER_BONUS_FOOD,
   SCORE_PER_FOOD,
   spawnFood,
   startGame,
@@ -29,6 +31,7 @@ describe('Snake engine', () => {
 
     expect(state.phase).toBe('ready');
     expect(state.snake).toHaveLength(3);
+    expect(state.obstacles).toHaveLength(0);
     expect(state.snake.some((part) => part.row === state.food.row && part.column === state.food.column))
       .toBe(false);
   });
@@ -93,6 +96,9 @@ describe('Snake engine', () => {
       direction: 'up',
       pendingDirection: 'left',
       food: { row: 0, column: 0 },
+      foodKind: 'normal',
+      obstacles: [],
+      obstacleMode: false,
       score: 40,
       bestScore: 40,
       moveCount: 0,
@@ -113,6 +119,37 @@ describe('Snake engine', () => {
     );
 
     expect(food).toEqual({ row: 1, column: 0 });
+  });
+
+  it('creates obstacle mode and ends when hitting an obstacle', () => {
+    const state: SnakeState = {
+      ...startGame(createGameState(sequenceRandom([0.99]), 0, true)),
+      snake: [
+        { row: 3, column: 2 },
+        { row: 3, column: 1 },
+        { row: 3, column: 0 },
+      ],
+      direction: 'right',
+      pendingDirection: 'right',
+      food: { row: 0, column: 0 },
+      foodKind: 'normal',
+      obstacles: [{ row: 3, column: 3 }],
+    };
+
+    expect(state.obstacleMode).toBe(true);
+    expect(stepGame(state).phase).toBe('game-over');
+  });
+
+  it('scores bonus food with a larger value', () => {
+    const state: SnakeState = {
+      ...startGame(createGameState(sequenceRandom([0.99]))),
+      food: { row: 7, column: 9 },
+      foodKind: 'bonus',
+    };
+    const next = stepGame(state, sequenceRandom([0, 0.99]));
+
+    expect(getFoodScore('bonus')).toBe(SCORE_PER_BONUS_FOOD);
+    expect(next.score).toBe(SCORE_PER_BONUS_FOOD);
   });
 
   it('calculates speed level and step duration from score', () => {
