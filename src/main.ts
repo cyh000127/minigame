@@ -100,13 +100,31 @@ const controlsText = mustQuery<HTMLElement>('[data-controls]');
 class FrameGameRuntime implements MiniGameRuntime {
   #activeGame: GameEntry | null = null;
 
+  constructor() {
+    frame.addEventListener('load', () => {
+      if (!this.#activeGame) {
+        return;
+      }
+
+      this.#post('start');
+    });
+  }
+
   start(game: GameEntry): void {
     this.#activeGame = game;
-    frame.src = createGameUrl(game.slug);
+    const gameUrl = createGameUrl(game.slug);
+    const currentGameUrl = frame.getAttribute('src');
+
     frame.hidden = false;
     emptyState.hidden = true;
     this.#hideOverlay();
-    this.#post('start');
+
+    if (currentGameUrl === gameUrl) {
+      this.#post('start');
+      return;
+    }
+
+    frame.src = gameUrl;
   }
 
   pause(): void {
