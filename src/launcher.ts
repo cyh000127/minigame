@@ -87,6 +87,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#5bff7d',
     status: 'playable',
   },
+  {
+    slug: 'simon-says',
+    title: 'Simon Says',
+    genre: 'Memory Rhythm',
+    description: '빛나는 패드 순서를 기억하고 같은 순서로 입력하는 기억력 게임',
+    controls: ['Arrow Keys', 'WASD', 'Click', 'Space'],
+    accent: '#f97316',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();

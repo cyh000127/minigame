@@ -53,3 +53,4 @@ corepack pnpm run dev
 - [2048](games/2048/README.md)
 - [Minesweeper](games/minesweeper/README.md)
 - [Snake](games/snake/README.md)
+- [Simon Says](games/simon-says/README.md)
