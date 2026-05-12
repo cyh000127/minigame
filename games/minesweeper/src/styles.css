@@ -18,6 +18,7 @@ body {
     linear-gradient(90deg, rgb(92 230 184 / 0.1) 0 1px, transparent 1px 72px),
     linear-gradient(0deg, rgb(255 210 94 / 0.08) 0 1px, transparent 1px 72px),
     #081011;
+  overscroll-behavior: none;
 }
 
 button {
@@ -32,15 +33,25 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible {
+  outline: 3px solid #ffd25e;
+  outline-offset: 3px;
+}
+
+button[hidden],
+[hidden] {
+  display: none !important;
+}
+
 .shell {
   display: grid;
-  width: min(100%, 780px);
+  width: min(100%, 820px);
   height: 100vh;
   min-height: 0;
   margin: 0 auto;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
-  gap: 10px;
-  padding: 12px;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: clamp(7px, 1.2vh, 10px);
+  padding: clamp(8px, 1.6vh, 12px);
 }
 
 .topbar {
@@ -56,14 +67,15 @@ button {
 }
 
 .topbar p,
-.status-panel span {
+.status-panel span,
+.help-text {
   color: #5ce6b8;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
 .topbar h1 {
-  font-size: clamp(2rem, 7vmin, 4rem);
+  font-size: clamp(2rem, 7vmin, 3.6rem);
   line-height: 1;
 }
 
@@ -79,7 +91,7 @@ button {
 
 .status-panel > div {
   display: grid;
-  min-height: 58px;
+  min-height: 52px;
   place-items: center;
   border: 2px solid rgb(244 251 249 / 0.62);
   border-radius: 8px;
@@ -88,7 +100,7 @@ button {
 
 .status-panel strong {
   color: #ffd25e;
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   line-height: 1;
 }
 
@@ -101,19 +113,28 @@ button {
   background: #1f4f49;
 }
 
-.board {
+.board-wrap {
+  position: relative;
   display: grid;
-  align-self: start;
-  justify-self: center;
-  width: min(100%, 64vh, 620px);
-  aspect-ratio: 1;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  grid-template-rows: repeat(9, minmax(0, 1fr));
-  gap: 4px;
+  min-height: 0;
+  place-items: center;
+}
+
+.board {
+  --columns: 9;
+  --rows: 9;
+
+  display: grid;
+  width: min(100%, 70vh, 680px);
+  aspect-ratio: var(--columns) / var(--rows);
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  gap: clamp(2px, 0.65vmin, 4px);
   border: 3px solid #5ce6b8;
   border-radius: 10px;
-  padding: 8px;
+  padding: clamp(5px, 1.1vmin, 8px);
   background: #102022;
+  touch-action: manipulation;
 }
 
 .cell {
@@ -130,12 +151,76 @@ button {
     linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent),
     #2b6c63;
   color: #102022;
-  font-size: clamp(0.8rem, 4vmin, 1.7rem);
+  font-size: clamp(0.72rem, 3vmin, 1.45rem);
+  line-height: 1;
+  user-select: none;
 }
 
 .cell--open {
   background: #d9efe7;
   color: #143431;
+}
+
+.cell--flagged {
+  background: #ffd25e;
+  color: #102022;
+}
+
+.cell--mine {
+  background: #ff6262;
+  color: #fff8f3;
+}
+
+.cell[data-number="1"] {
+  color: #2678ff;
+}
+
+.cell[data-number="2"] {
+  color: #229c62;
+}
+
+.cell[data-number="3"] {
+  color: #df4c4c;
+}
+
+.cell[data-number="4"],
+.cell[data-number="5"],
+.cell[data-number="6"],
+.cell[data-number="7"],
+.cell[data-number="8"] {
+  color: #6e4ef7;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  border: 3px solid rgb(244 251 249 / 0.72);
+  border-radius: 10px;
+  background: rgb(8 16 17 / 0.86);
+  text-align: center;
+}
+
+.overlay p,
+.overlay h2 {
+  margin: 0;
+}
+
+.overlay p {
+  color: #5ce6b8;
+  font-weight: 900;
+}
+
+.overlay h2 {
+  font-size: clamp(1.8rem, 7vmin, 3.6rem);
+  line-height: 1;
+}
+
+.help-text {
+  text-align: center;
 }
 
 @media (max-width: 560px) {
@@ -145,6 +230,6 @@ button {
   }
 
   .board {
-    width: min(100%, 58vh);
+    width: min(100%, 60vh);
   }
 }
