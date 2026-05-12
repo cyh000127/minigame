@@ -56,3 +56,4 @@ corepack pnpm run dev
 - [Simon Says](games/simon-says/README.md)
 - [Perfect Stop](games/perfect-stop/README.md)
 - [Type Rain](games/type-rain/README.md)
+- [Whack Mole](games/whack-mole/README.md)

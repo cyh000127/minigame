@@ -114,6 +114,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#38bdf8',
     status: 'playable',
   },
+  {
+    slug: 'whack-mole',
+    title: 'Whack Mole',
+    genre: 'Reaction Arcade',
+    description: '3x3 구멍에 나타나는 두더지를 빠르게 잡는 반응 게임',
+    controls: ['Click', 'Touch', 'Number Keys', 'Space'],
+    accent: '#84cc16',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
