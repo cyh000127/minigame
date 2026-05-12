@@ -50,3 +50,4 @@ corepack pnpm run dev
 - [Road Racer](games/road-racer/README.md)
 - [Brick Breaker](games/brick-breaker/README.md)
 - [Color Match](games/color-match/README.md)
+- [2048](games/2048/README.md)

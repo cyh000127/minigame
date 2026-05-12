@@ -60,6 +60,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#58f08b',
     status: 'playable',
   },
+  {
+    slug: '2048',
+    title: '2048',
+    genre: 'Number Puzzle',
+    description: '같은 숫자 타일을 합쳐 2048 타일을 만드는 퍼즐 게임',
+    controls: ['Arrow Keys', 'Swipe'],
+    accent: '#edc22e',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
