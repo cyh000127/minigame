@@ -8,6 +8,16 @@ import {
   type GameEntry,
   type MiniGameRuntime,
 } from './launcher';
+import {
+  ACHIEVEMENTS,
+  getGameProgress,
+  readHubProgress,
+  recordGameEnd,
+  recordGameStart,
+  resetHubProgress,
+  summarizeHubProgress,
+  writeHubProgress,
+} from './local-progress';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -36,6 +46,33 @@ appRoot.innerHTML = `
           <span>SELECT GAME</span>
           <strong data-selected-count>${GAMES.length}</strong>
         </div>
+        <section class="progress-panel" aria-label="Local progress dashboard">
+          <div class="progress-panel__head">
+            <span>LOCAL RECORD</span>
+            <strong data-progress-summary>0/0</strong>
+          </div>
+          <div class="progress-stats" aria-label="Hub progress summary">
+            <span>
+              <small>PLAYS</small>
+              <strong data-total-plays>0</strong>
+            </span>
+            <span>
+              <small>BEST</small>
+              <strong data-total-best>0</strong>
+            </span>
+            <span>
+              <small>ACHV</small>
+              <strong data-achievement-count>0/0</strong>
+            </span>
+          </div>
+          <div class="selected-record" aria-live="polite">
+            <small data-selected-record-name>SELECTED</small>
+            <strong data-selected-best>BEST 0</strong>
+            <span data-selected-plays>0 RUNS / 0:00</span>
+          </div>
+          <div class="achievement-track" data-achievements></div>
+          <button class="reset-progress" data-reset-progress type="button">RESET LOCAL</button>
+        </section>
         <div class="game-list" data-game-list></div>
       </aside>
 
@@ -96,6 +133,21 @@ const pauseLabel = mustQuery<HTMLElement>('[data-pause-label]');
 const pauseTitle = mustQuery<HTMLElement>('[data-pause-title]');
 const statusText = mustQuery<HTMLElement>('[data-status]');
 const controlsText = mustQuery<HTMLElement>('[data-controls]');
+const progressSummary = mustQuery<HTMLElement>('[data-progress-summary]');
+const totalPlaysText = mustQuery<HTMLElement>('[data-total-plays]');
+const totalBestText = mustQuery<HTMLElement>('[data-total-best]');
+const achievementCountText = mustQuery<HTMLElement>('[data-achievement-count]');
+const selectedRecordName = mustQuery<HTMLElement>('[data-selected-record-name]');
+const selectedBestText = mustQuery<HTMLElement>('[data-selected-best]');
+const selectedPlaysText = mustQuery<HTMLElement>('[data-selected-plays]');
+const achievementsList = mustQuery<HTMLElement>('[data-achievements]');
+const resetProgressButton = mustQuery<HTMLButtonElement>('[data-reset-progress]');
+
+interface ActiveHubSession {
+  slug: string;
+  startedAtMs: number;
+  score: number | null;
+}
 
 class FrameGameRuntime implements MiniGameRuntime {
   #activeGame: GameEntry | null = null;
@@ -173,11 +225,16 @@ class FrameGameRuntime implements MiniGameRuntime {
 
 const runtime = new FrameGameRuntime();
 let selectedGame = findGameBySlug(window.location.hash.replace('#', '') || DEFAULT_GAME.slug);
+let hubProgress = readHubProgress(window.localStorage);
+let activeSession: ActiveHubSession | null = null;
+
+const numberFormat = new Intl.NumberFormat('ko-KR');
 
 renderGameList();
 selectGame(selectedGame);
 
 startButton.addEventListener('click', () => {
+  beginLocalSession(selectedGame);
   runtime.start(selectedGame);
   statusText.textContent = `${selectedGame.title} 실행 중`;
 });
@@ -195,12 +252,54 @@ pauseButton.addEventListener('click', () => {
 
 gameOverButton.addEventListener('click', () => {
   runtime.gameOver();
+  finishLocalSession({ completed: true });
   statusText.textContent = `${selectedGame.title} 종료 상태`;
+});
+
+resetProgressButton.addEventListener('click', () => {
+  if (!window.confirm('로컬 기록과 업적을 초기화할까요?')) {
+    return;
+  }
+
+  activeSession = null;
+  hubProgress = resetHubProgress(window.localStorage);
+  renderProgressViews();
+  statusText.textContent = '로컬 기록을 초기화했습니다.';
+});
+
+window.addEventListener('message', (event) => {
+  if (event.origin !== window.origin || !isRecord(event.data)) {
+    return;
+  }
+
+  const type = readMessageType(event.data);
+
+  if (!type || !isSupportedGameMessageType(type)) {
+    return;
+  }
+
+  const game = getRegisteredGame(event.data.gameSlug) ?? getRegisteredGame(activeSession?.slug) ?? selectedGame;
+  const score = readMessageScore(event.data);
+
+  if (type === 'minigame:start' || type === 'start') {
+    beginLocalSession(game);
+    return;
+  }
+
+  if (type === 'minigame:score' || type === 'score') {
+    updateActiveSessionScore(game.slug, score);
+    return;
+  }
+
+  if (type === 'minigame:game-over' || type === 'game-over' || type === 'gameOver') {
+    finishLocalSession({ slug: game.slug, score, completed: true });
+  }
 });
 
 function renderGameList(): void {
   gameList.innerHTML = GAMES.map((game) => {
     const status = game.status === 'needs-server' ? 'SERVER' : 'READY';
+    const record = getGameProgress(hubProgress, game.slug);
 
     return `
       <button class="game-card" data-game="${game.slug}" type="button" style="--accent: ${game.accent};">
@@ -209,6 +308,7 @@ function renderGameList(): void {
           <span class="game-card__meta">${game.genre} / ${status}</span>
           <strong>${game.title}</strong>
           <span>${game.description}</span>
+          <span class="game-card__record">BEST ${formatNumber(record.bestScore)} / RUN ${formatNumber(record.plays)}</span>
         </span>
       </button>
     `;
@@ -220,6 +320,8 @@ function renderGameList(): void {
       selectGame(game);
     });
   }
+
+  markSelectedGame();
 }
 
 function selectGame(game: GameEntry): void {
@@ -235,9 +337,148 @@ function selectGame(game: GameEntry): void {
       ? '이 게임은 별도 서버가 필요합니다. 루트에서 pnpm run dev:quoridor-server를 함께 실행하세요.'
       : 'RUN을 누르면 선택한 게임이 실행됩니다.';
 
-  for (const button of gameList.querySelectorAll<HTMLButtonElement>('[data-game]')) {
-    button.classList.toggle('is-selected', button.dataset.game === game.slug);
+  renderDashboard();
+  markSelectedGame();
+}
+
+function beginLocalSession(game: GameEntry): void {
+  if (activeSession?.slug === game.slug) {
+    return;
   }
+
+  if (activeSession) {
+    finishLocalSession({ completed: false });
+  }
+
+  hubProgress = writeHubProgress(window.localStorage, recordGameStart(hubProgress, game.slug));
+  activeSession = {
+    slug: game.slug,
+    startedAtMs: performance.now(),
+    score: null,
+  };
+  renderProgressViews();
+}
+
+function updateActiveSessionScore(slug: string, score: number | undefined): void {
+  if (!activeSession || activeSession.slug !== slug || score === undefined) {
+    return;
+  }
+
+  activeSession = {
+    ...activeSession,
+    score,
+  };
+}
+
+function finishLocalSession(options: { slug?: string; score?: number; completed?: boolean } = {}): void {
+  if (!activeSession) {
+    return;
+  }
+
+  const session = activeSession;
+  const slug = options.slug ?? session.slug;
+  const score = options.score ?? session.score ?? undefined;
+  const durationMs = Math.max(0, Math.round(performance.now() - session.startedAtMs));
+
+  hubProgress = writeHubProgress(
+    window.localStorage,
+    recordGameEnd(hubProgress, slug, {
+      score,
+      durationMs,
+      completed: options.completed,
+    }),
+  );
+  activeSession = null;
+  renderProgressViews();
+}
+
+function renderProgressViews(): void {
+  renderDashboard();
+  renderGameList();
+}
+
+function renderDashboard(): void {
+  const summary = summarizeHubProgress(hubProgress);
+  const selectedRecord = getGameProgress(hubProgress, selectedGame.slug);
+
+  progressSummary.textContent = `${summary.unlockedAchievementCount}/${summary.achievementCount}`;
+  totalPlaysText.textContent = formatNumber(summary.totalPlays);
+  totalBestText.textContent = formatNumber(summary.totalBestScore);
+  achievementCountText.textContent = `${summary.unlockedAchievementCount}/${summary.achievementCount}`;
+  selectedRecordName.textContent = selectedGame.title.toUpperCase();
+  selectedBestText.textContent = `BEST ${formatNumber(selectedRecord.bestScore)}`;
+  selectedPlaysText.textContent = `${formatNumber(selectedRecord.plays)} RUNS / ${formatDuration(
+    selectedRecord.totalPlayTimeMs,
+  )}`;
+  achievementsList.innerHTML = ACHIEVEMENTS.map((achievement) => {
+    const unlocked = hubProgress.unlockedAchievementIds.includes(achievement.id);
+
+    return `
+      <span class="achievement-item${unlocked ? ' is-unlocked' : ''}">
+        <span class="achievement-item__mark" aria-hidden="true">${unlocked ? 'ON' : '--'}</span>
+        <span>
+          <strong>${achievement.title}</strong>
+          <small>${achievement.description}</small>
+        </span>
+      </span>
+    `;
+  }).join('');
+}
+
+function markSelectedGame(): void {
+  for (const button of gameList.querySelectorAll<HTMLButtonElement>('[data-game]')) {
+    button.classList.toggle('is-selected', button.dataset.game === selectedGame.slug);
+  }
+}
+
+function getRegisteredGame(slug: unknown): GameEntry | null {
+  return typeof slug === 'string' ? GAMES.find((game) => game.slug === slug) ?? null : null;
+}
+
+function readMessageType(message: Record<string, unknown>): string | null {
+  if (typeof message.type === 'string') {
+    return message.type;
+  }
+
+  return typeof message.command === 'string' ? message.command : null;
+}
+
+function readMessageScore(message: Record<string, unknown>): number | undefined {
+  const candidates = [message.score, message.value];
+
+  for (const candidate of candidates) {
+    const score = Number(candidate);
+
+    if (Number.isFinite(score)) {
+      return Math.max(0, Math.floor(score));
+    }
+  }
+
+  return undefined;
+}
+
+function isSupportedGameMessageType(type: string): boolean {
+  return [
+    'minigame:start',
+    'start',
+    'minigame:score',
+    'score',
+    'minigame:game-over',
+    'game-over',
+    'gameOver',
+  ].includes(type);
+}
+
+function formatNumber(value: number): string {
+  return numberFormat.format(value);
+}
+
+function formatDuration(durationMs: number): string {
+  const totalSeconds = Math.floor(durationMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 function mustQuery<TElement extends Element>(selector: string): TElement {
@@ -248,4 +489,8 @@ function mustQuery<TElement extends Element>(selector: string): TElement {
   }
 
   return element;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }

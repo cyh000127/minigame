@@ -71,11 +71,16 @@ a:focus-visible {
 
 .topbar p,
 .selector__head span,
+.progress-panel__head span,
+.progress-stats small,
+.selected-record small,
+.achievement-item small,
 .runner__toolbar span,
 .stage__empty span,
 .stage__pause span,
 .runner__status,
-.game-card__meta {
+.game-card__meta,
+.game-card__record {
   color: #45d6ff;
   font-size: 0.78rem;
   font-weight: 900;
@@ -125,7 +130,8 @@ a:focus-visible {
 .selector {
   display: grid;
   min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
   padding: 14px;
 }
 
@@ -147,12 +153,147 @@ a:focus-visible {
   color: #ffd25a;
 }
 
+.progress-panel {
+  display: grid;
+  gap: 9px;
+  border-bottom: 1px solid rgb(248 251 255 / 0.18);
+  padding-bottom: 12px;
+}
+
+.progress-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.progress-panel__head strong {
+  color: #ffd25a;
+  font-size: 0.96rem;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.progress-stats > span,
+.selected-record,
+.achievement-item {
+  border: 1px solid rgb(248 251 255 / 0.24);
+  border-radius: 8px;
+  background: rgb(8 10 18 / 0.72);
+}
+
+.progress-stats > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 8px;
+}
+
+.progress-stats strong {
+  overflow: hidden;
+  color: #f8fbff;
+  font-size: 1.08rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-record {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+}
+
+.selected-record strong {
+  overflow: hidden;
+  color: #ffd25a;
+  font-size: 1.02rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-record span {
+  color: rgb(248 251 255 / 0.76);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.achievement-track {
+  display: grid;
+  max-height: 134px;
+  gap: 6px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.achievement-item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 7px 8px;
+  opacity: 0.58;
+}
+
+.achievement-item.is-unlocked {
+  border-color: rgb(88 240 139 / 0.55);
+  background: rgb(88 240 139 / 0.12);
+  opacity: 1;
+}
+
+.achievement-item__mark {
+  display: grid;
+  min-width: 0;
+  min-height: 24px;
+  place-items: center;
+  border-radius: 6px;
+  background: rgb(248 251 255 / 0.1);
+  color: #ffd25a;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.achievement-item strong,
+.achievement-item small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.achievement-item strong {
+  font-size: 0.82rem;
+}
+
+.achievement-item small {
+  color: rgb(248 251 255 / 0.62);
+  font-size: 0.7rem;
+}
+
+.reset-progress {
+  min-height: 34px;
+  border: 1px solid rgb(248 251 255 / 0.34);
+  border-radius: 8px;
+  background: rgb(248 251 255 / 0.08);
+  color: rgb(248 251 255 / 0.78);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.reset-progress:hover {
+  border-color: #ffd25a;
+  color: #ffd25a;
+}
+
 .game-list {
   display: grid;
   align-content: start;
   gap: 10px;
   overflow: auto;
-  padding-top: 12px;
 }
 
 .game-card {
@@ -226,6 +367,11 @@ a:focus-visible {
   color: rgb(248 251 255 / 0.78);
   font-size: 0.88rem;
   line-height: 1.35;
+}
+
+.game-card__record {
+  color: #ffd25a;
+  font-size: 0.74rem;
 }
 
 .runner {
