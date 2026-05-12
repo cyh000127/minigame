@@ -32,6 +32,17 @@ minigame/
 - [개발 가이드](docs/development-guide.md)
 - [커밋 컨벤션](docs/commit-convention.md)
 
+## 메인 실행기
+
+루트 실행기는 게임 목록을 보여주고 선택한 게임을 `games/<game-name>/index.html`에서 실행합니다.
+
+```bash
+corepack pnpm install
+corepack pnpm run dev
+```
+
+기본 주소는 `http://127.0.0.1:5173`입니다.
+
 ## 게임
 
 - [Quoridor](games/quoridor/README.md)
