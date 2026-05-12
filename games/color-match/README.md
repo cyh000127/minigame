@@ -36,8 +36,10 @@ corepack pnpm run test
 
 ```text
 src/
-  main.ts      브라우저 진입점과 기본 UI
-  styles.css   color match 화면 스타일
+  game.ts       게임 상태, 점수, 타이머, 함정 패턴 엔진
+  game.test.ts  게임 엔진 단위 테스트
+  main.ts       브라우저 진입점과 기본 UI
+  styles.css    color match 화면 스타일
 ```
 
 이 게임은 `games/color-match` 내부 코드만 사용하며, 다른 게임 디렉토리의 코드를 참조하지 않습니다.
