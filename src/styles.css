@@ -51,10 +51,22 @@ a:focus-visible {
   gap: 12px;
 }
 
+.hub-shell[data-view="runner"] {
+  width: 100%;
+  padding: 0;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.hub-shell[data-view="runner"] .topbar {
+  display: none;
+}
+
 .topbar,
 .library-view,
 .selector,
-.runner {
+.runner,
+.game-host {
   border: 2px solid rgb(248 251 255 / 0.72);
   border-radius: 10px;
   background: rgb(10 14 26 / 0.86);
@@ -183,6 +195,12 @@ a:focus-visible {
   gap: 14px;
 }
 
+.hub-shell[data-view="runner"] .hub-layout {
+  height: 100vh;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 0;
+}
+
 .selector {
   display: grid;
   min-height: 0;
@@ -193,6 +211,12 @@ a:focus-visible {
 
 .play-sidebar {
   grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.hub-shell[data-view="runner"] .play-sidebar {
+  border-width: 0 2px 0 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .selector__head {
@@ -483,6 +507,25 @@ a:focus-visible {
   overflow: hidden;
 }
 
+.game-host {
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: #05060b;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.game-host iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  background: #05060b;
+}
+
 .runner__toolbar {
   display: flex;
   align-items: center;
@@ -601,6 +644,16 @@ a:focus-visible {
 @media (max-width: 980px) {
   .hub-layout {
     grid-template-columns: 1fr;
+  }
+
+  .hub-shell[data-view="runner"] .hub-layout {
+    height: 100vh;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(220px, 34vh) minmax(0, 1fr);
+  }
+
+  .hub-shell[data-view="runner"] .play-sidebar {
+    border-width: 0 0 2px;
   }
 
   .library__head {

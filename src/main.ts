@@ -99,43 +99,8 @@ appRoot.innerHTML = `
         <button class="back-to-library" data-back-to-library type="button">게임 선택화면으로 돌아가기</button>
       </aside>
 
-      <section class="runner" aria-label="Game runner">
-        <div class="runner__toolbar">
-          <div>
-            <span data-runner-genre>READY</span>
-            <strong data-runner-title>게임을 선택하세요</strong>
-          </div>
-          <div class="runner__actions">
-            <button class="icon-button" data-start type="button" aria-label="게임 실행">
-              <span class="play-mark"></span>
-              RUN
-            </button>
-            <button class="icon-button" data-pause type="button" aria-label="게임 일시정지">
-              ||
-            </button>
-            <button class="icon-button" data-game-over type="button" aria-label="게임 종료">
-              END
-            </button>
-            <a class="open-link" data-open-link href="#" target="_blank" rel="noreferrer">OPEN</a>
-          </div>
-        </div>
-
-        <div class="stage" data-stage>
-          <iframe data-frame title="Selected minigame" loading="lazy" hidden></iframe>
-          <div class="stage__empty" data-stage-empty>
-            <span>READY</span>
-            <strong>RUN을 누르면 이 영역에서 실행됩니다</strong>
-          </div>
-          <div class="stage__pause" data-stage-pause>
-            <span data-pause-label>PAUSED</span>
-            <strong data-pause-title></strong>
-          </div>
-        </div>
-
-        <footer class="runner__status">
-          <span data-status>게임 목록에서 플레이할 게임을 선택하세요.</span>
-          <span data-controls></span>
-        </footer>
+      <section class="game-host" aria-label="Game screen">
+        <iframe data-frame title="Selected minigame" loading="eager"></iframe>
       </section>
     </section>
   </main>
@@ -146,19 +111,7 @@ const libraryView = mustQuery<HTMLElement>('[data-library-view]');
 const playView = mustQuery<HTMLElement>('[data-play-view]');
 const gameList = mustQuery<HTMLElement>('[data-game-list]');
 const activeTitle = mustQuery<HTMLElement>('[data-active-title]');
-const runnerTitle = mustQuery<HTMLElement>('[data-runner-title]');
-const runnerGenre = mustQuery<HTMLElement>('[data-runner-genre]');
-const startButton = mustQuery<HTMLButtonElement>('[data-start]');
-const pauseButton = mustQuery<HTMLButtonElement>('[data-pause]');
-const gameOverButton = mustQuery<HTMLButtonElement>('[data-game-over]');
-const openLink = mustQuery<HTMLAnchorElement>('[data-open-link]');
 const frame = mustQuery<HTMLIFrameElement>('[data-frame]');
-const stage = mustQuery<HTMLElement>('[data-stage]');
-const emptyState = mustQuery<HTMLElement>('[data-stage-empty]');
-const pauseLabel = mustQuery<HTMLElement>('[data-pause-label]');
-const pauseTitle = mustQuery<HTMLElement>('[data-pause-title]');
-const statusText = mustQuery<HTMLElement>('[data-status]');
-const controlsText = mustQuery<HTMLElement>('[data-controls]');
 const libraryPlaysText = mustQuery<HTMLElement>('[data-library-plays]');
 const libraryBestText = mustQuery<HTMLElement>('[data-library-best]');
 const libraryAchievementsText = mustQuery<HTMLElement>('[data-library-achievements]');
@@ -199,10 +152,6 @@ class FrameGameRuntime implements MiniGameRuntime {
     const gameUrl = createGameUrl(game.slug);
     const currentGameUrl = frame.getAttribute('src');
 
-    frame.hidden = false;
-    emptyState.hidden = true;
-    this.#hideOverlay();
-
     if (currentGameUrl === gameUrl) {
       this.#post('start');
       return;
@@ -212,38 +161,20 @@ class FrameGameRuntime implements MiniGameRuntime {
   }
 
   pause(): void {
-    if (!this.#activeGame) {
-      return;
-    }
-
-    stage.dataset.mode = 'paused';
-    pauseLabel.textContent = 'PAUSED';
-    pauseTitle.textContent = this.#activeGame.title;
     this.#post('pause');
   }
 
   gameOver(): void {
-    if (!this.#activeGame) {
-      return;
-    }
-
-    stage.dataset.mode = 'game-over';
-    pauseLabel.textContent = 'GAME OVER';
-    pauseTitle.textContent = this.#activeGame.title;
     this.#post('gameOver');
   }
 
   resume(): void {
-    if (!this.#activeGame) {
-      return;
-    }
-
-    this.#hideOverlay();
     this.#post('start');
   }
 
-  #hideOverlay(): void {
-    delete stage.dataset.mode;
+  clear(): void {
+    this.#activeGame = null;
+    frame.removeAttribute('src');
   }
 
   #post(command: 'start' | 'pause' | 'gameOver'): void {
@@ -267,29 +198,6 @@ syncRouteFromHash();
 
 window.addEventListener('hashchange', syncRouteFromHash);
 
-startButton.addEventListener('click', () => {
-  beginLocalSession(selectedGame);
-  runtime.start(selectedGame);
-  statusText.textContent = `${selectedGame.title} 실행 중`;
-});
-
-pauseButton.addEventListener('click', () => {
-  if (stage.dataset.mode === 'paused') {
-    runtime.resume();
-    statusText.textContent = `${selectedGame.title} 재개`;
-    return;
-  }
-
-  runtime.pause();
-  statusText.textContent = `${selectedGame.title} 일시정지`;
-});
-
-gameOverButton.addEventListener('click', () => {
-  runtime.gameOver();
-  finishLocalSession({ completed: true });
-  statusText.textContent = `${selectedGame.title} 종료 상태`;
-});
-
 resetProgressButton.addEventListener('click', () => {
   if (!window.confirm('로컬 기록과 업적을 초기화할까요?')) {
     return;
@@ -298,7 +206,6 @@ resetProgressButton.addEventListener('click', () => {
   activeSession = null;
   hubProgress = resetHubProgress(window.localStorage);
   renderProgressViews();
-  statusText.textContent = '로컬 기록을 초기화했습니다.';
 });
 
 backToLibraryButton.addEventListener('click', () => {
@@ -413,7 +320,7 @@ function showLibraryView(): void {
   }
 
   runtime.pause();
-  resetRunnerStage();
+  runtime.clear();
   hubShell.dataset.view = 'library';
   libraryView.hidden = false;
   playView.hidden = true;
@@ -422,45 +329,17 @@ function showLibraryView(): void {
 }
 
 function showRunnerView(game: GameEntry): void {
-  prepareRunnerForSelection(game);
   hubShell.dataset.view = 'runner';
   libraryView.hidden = true;
   playView.hidden = false;
   updateSelectedGame(game);
-}
-
-function prepareRunnerForSelection(game: GameEntry): void {
-  if (selectedGame.slug === game.slug) {
-    return;
-  }
-
-  if (activeSession) {
-    finishLocalSession({ completed: false });
-  }
-
-  runtime.pause();
-  resetRunnerStage();
-}
-
-function resetRunnerStage(): void {
-  frame.hidden = true;
-  emptyState.hidden = false;
-  delete stage.dataset.mode;
-  pauseLabel.textContent = 'PAUSED';
-  pauseTitle.textContent = '';
+  beginLocalSession(game);
+  runtime.start(game);
 }
 
 function updateSelectedGame(game: GameEntry): void {
   selectedGame = game;
   activeTitle.textContent = game.title.toUpperCase();
-  runnerTitle.textContent = game.title;
-  runnerGenre.textContent = game.genre;
-  openLink.href = createGameUrl(game.slug);
-  controlsText.textContent = `Controls: ${game.controls.join(', ')}`;
-  statusText.textContent =
-    game.status === 'needs-server'
-      ? '이 게임은 별도 서버가 필요합니다. 루트에서 pnpm run dev:quoridor-server를 함께 실행하세요.'
-      : 'RUN을 누르면 선택한 게임이 실행됩니다.';
 
   renderDashboard();
   markSelectedGame();

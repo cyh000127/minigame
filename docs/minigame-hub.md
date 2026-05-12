@@ -27,8 +27,8 @@ corepack pnpm run dev:quoridor-server
 ## 허브 화면 흐름
 
 1. 기본 진입 화면은 게임 목록 페이지입니다.
-2. 게임 카드를 누르면 `#game/<game-name>` 경로의 플레이 화면으로 이동합니다.
-3. 플레이 화면의 오른쪽은 현재 게임 실행 iframe이고, 왼쪽은 로컬 점수/업적 대시보드입니다.
+2. 게임 카드를 누르면 `#game/<game-name>` 경로로 이동하고 해당 게임의 `index.html`을 바로 로드합니다.
+3. 화면 오른쪽은 게임 단독 실행 페이지를 최대한 크게 보여주는 iframe이고, 왼쪽은 로컬 점수/업적 대시보드입니다.
 4. 다른 게임을 고르려면 왼쪽 하단의 `게임 선택화면으로 돌아가기` 버튼으로 목록 페이지에 돌아갑니다.
 5. 기존 `#<game-name>` 해시는 호환용으로 유지되지만, 새 링크는 `#game/<game-name>` 형식을 사용합니다.
 
@@ -136,7 +136,7 @@ window.addEventListener('message', (event: MessageEvent<MiniGameLifecycleMessage
 
 - 저장 위치는 브라우저 `localStorage`이며 서버, 계정, DB, 네트워크 동기화를 붙이지 않는다.
 - 저장 키는 `minigame:hub:progress:v1`이다.
-- 허브의 RUN 버튼을 누르면 해당 게임의 실행 횟수와 마지막 실행 시간이 기록된다.
+- 허브에서 게임 카드로 진입하면 해당 게임의 실행 횟수와 마지막 실행 시간이 기록된다.
 - 허브의 END 버튼 또는 게임 종료 메시지를 받으면 종료 횟수, 플레이 시간, 점수를 기록한다.
 - 기록 초기화는 허브의 `RESET LOCAL` 버튼으로만 처리한다.
 
