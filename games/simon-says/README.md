@@ -28,6 +28,7 @@ corepack pnpm run test
 ## 조작
 
 - 방향키 또는 WASD: 패드 입력
+- 마우스 또는 터치: 패드 입력
 - `Space`: 시작 또는 일시정지
 - `Enter`: 새 게임
 
@@ -39,6 +40,7 @@ corepack pnpm run test
 - 3라운드마다 표시 속도가 빨라집니다.
 - 틀린 패드를 누르면 게임이 종료됩니다.
 - 최고 점수는 브라우저 `localStorage`에 저장됩니다.
+- 실행기에서 보내는 `start`, `pause`, `gameOver`, `reset` 제어 메시지를 처리할 수 있습니다.
 
 ## 구조
 
