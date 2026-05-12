@@ -3,6 +3,7 @@ import {
   createGameState,
   DIFFICULTIES,
   getRemainingMines,
+  revealAdjacentCells,
   revealCell,
   tickTimer,
   toggleFlag,
@@ -68,7 +69,7 @@ appRoot.innerHTML = `
       </div>
     </section>
 
-    <footer class="help-text">좌클릭은 열기, 우클릭 또는 길게 누르기는 깃발입니다.</footer>
+    <footer class="help-text">좌클릭은 열기, 우클릭/길게 누르기는 깃발, 숫자 칸 더블클릭은 주변 동시 열기입니다.</footer>
   </main>
 `;
 
@@ -119,6 +120,17 @@ boardElement.addEventListener('click', (event) => {
   }
 
   reveal(Number(cellButton.dataset.index));
+});
+
+boardElement.addEventListener('dblclick', (event) => {
+  const cellButton = getCellButton(event.target);
+
+  if (!cellButton) {
+    return;
+  }
+
+  event.preventDefault();
+  chord(Number(cellButton.dataset.index));
 });
 
 boardElement.addEventListener('contextmenu', (event) => {
@@ -209,6 +221,15 @@ function flag(index: number): void {
   }
 
   state = toggleFlag(state, index);
+  handlePostMove();
+}
+
+function chord(index: number): void {
+  if (paused) {
+    return;
+  }
+
+  state = revealAdjacentCells(state, index);
   handlePostMove();
 }
 

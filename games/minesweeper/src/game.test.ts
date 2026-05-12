@@ -5,6 +5,7 @@ import {
   getDifficulty,
   getNeighbors,
   getRemainingMines,
+  revealAdjacentCells,
   revealCell,
   tickTimer,
   toggleFlag,
@@ -108,6 +109,46 @@ describe('Minesweeper engine', () => {
     const state = revealCell(createGameState('easy'), 40, sequenceRandom([0.99]));
 
     expect(state.revealedCount).toBeGreaterThan(1);
+  });
+
+  it('chord reveals adjacent cells when flags match the revealed number', () => {
+    const difficulty = getDifficulty('easy');
+    const cells = createMinedCells(difficulty, 40, cyclingRandom([0, 0.2, 0.4, 0.6, 0.8]));
+    const numberedCell = cells.find((cell) => !cell.hasMine && cell.adjacentMines === 1);
+
+    expect(numberedCell).toBeDefined();
+
+    const mineNeighbor = getNeighbors(numberedCell?.index ?? 0, difficulty).find((index) => cells[index]?.hasMine);
+
+    expect(mineNeighbor).toBeDefined();
+
+    const prepared = {
+      ...createGameState('easy'),
+      phase: 'playing' as const,
+      cells: cells.map((cell) => {
+        if (cell.index === numberedCell?.index) {
+          return {
+            ...cell,
+            isRevealed: true,
+          };
+        }
+
+        if (cell.index === mineNeighbor) {
+          return {
+            ...cell,
+            isFlagged: true,
+          };
+        }
+
+        return cell;
+      }),
+      firstRevealDone: true,
+      revealedCount: 1,
+      flagCount: 1,
+    };
+    const next = revealAdjacentCells(prepared, numberedCell?.index ?? 0);
+
+    expect(next.revealedCount).toBeGreaterThan(prepared.revealedCount);
   });
 
   it('wins when every safe cell is revealed', () => {

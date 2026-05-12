@@ -153,6 +153,43 @@ export function toggleFlag(state: MinesweeperState, index: number): MinesweeperS
   };
 }
 
+export function revealAdjacentCells(
+  state: MinesweeperState,
+  index: number,
+  random: RandomSource = Math.random,
+): MinesweeperState {
+  if (state.phase !== 'playing') {
+    return state;
+  }
+
+  const target = state.cells[index];
+
+  if (!target?.isRevealed || target.adjacentMines <= 0) {
+    return state;
+  }
+
+  const neighbors = getNeighbors(index, state.difficulty);
+  const flaggedNeighborCount = neighbors.filter((neighborIndex) => state.cells[neighborIndex]?.isFlagged).length;
+
+  if (flaggedNeighborCount !== target.adjacentMines) {
+    return state;
+  }
+
+  return neighbors.reduce((nextState, neighborIndex) => {
+    if (nextState.phase !== 'playing') {
+      return nextState;
+    }
+
+    const neighbor = nextState.cells[neighborIndex];
+
+    if (!neighbor || neighbor.isFlagged || neighbor.isRevealed) {
+      return nextState;
+    }
+
+    return revealCell(nextState, neighborIndex, random);
+  }, state);
+}
+
 export function tickTimer(state: MinesweeperState, elapsedSeconds: number): MinesweeperState {
   if (state.phase !== 'playing') {
     return state;
