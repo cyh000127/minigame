@@ -348,7 +348,7 @@ function renderDifficultyButtons(): void {
 }
 
 function renderOverlay(): void {
-  const visible = paused || state.phase === 'ready' || state.phase === 'won' || state.phase === 'lost';
+  const visible = paused || state.phase === 'won' || state.phase === 'lost';
 
   overlayElement.hidden = !visible;
 
@@ -360,11 +360,6 @@ function renderOverlay(): void {
   }
 
   overlayAction.textContent = 'New Game';
-
-  if (state.phase === 'ready') {
-    overlayKicker.textContent = 'READY';
-    overlayTitle.textContent = '첫 칸을 열어 시작';
-  }
 
   if (state.phase === 'won') {
     overlayKicker.textContent = 'CLEAR';
