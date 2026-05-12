@@ -16,14 +16,20 @@ body {
   margin: 0;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgb(132 204 22 / 0.08) 0 1px, transparent 1px 56px),
-    linear-gradient(0deg, rgb(234 179 8 / 0.08) 0 1px, transparent 1px 56px),
+    linear-gradient(90deg, rgb(132 204 22 / 0.08) 0 1px, transparent 1px 50px),
+    linear-gradient(0deg, rgb(234 179 8 / 0.08) 0 1px, transparent 1px 50px),
+    radial-gradient(circle at 50% 8%, rgb(132 204 22 / 0.13), transparent 330px),
     #0d1008;
 }
 
 button {
   font: inherit;
   cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid #eab308;
+  outline-offset: 2px;
 }
 
 .shell {
@@ -43,26 +49,37 @@ button {
   align-items: end;
   justify-content: space-between;
   gap: 14px;
+  min-width: 0;
 }
 
-.topbar p,
-.topbar h1 {
+.brand {
+  min-width: 0;
+}
+
+.brand p,
+.brand h1 {
   margin: 0;
 }
 
-.topbar p,
+.brand p,
 .hud span {
   color: #84cc16;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
-.topbar h1 {
+.brand h1 {
   font-size: 3rem;
   line-height: 0.95;
 }
 
-.topbar button {
+.actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.actions button {
   min-height: 42px;
   border: 2px solid #84cc16;
   border-radius: 6px;
@@ -74,13 +91,13 @@ button {
 
 .hud {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
 .hud > div {
   display: grid;
-  min-height: 56px;
+  min-height: 54px;
   place-items: center;
   border: 2px solid rgb(251 255 242 / 0.44);
   border-radius: 8px;
@@ -89,14 +106,19 @@ button {
 
 .hud strong {
   color: #eab308;
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   line-height: 1;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  place-items: start center;
 }
 
 .board {
   display: grid;
-  align-self: start;
-  justify-self: center;
   width: min(100%, calc(100svh - 190px), 620px);
   aspect-ratio: 1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -105,45 +127,148 @@ button {
   border: 3px solid #84cc16;
   border-radius: 10px;
   padding: 12px;
-  background: #11180c;
-  box-shadow: 0 0 28px rgb(132 204 22 / 0.18);
+  background:
+    linear-gradient(135deg, rgb(132 204 22 / 0.12), transparent 58%),
+    #11180c;
+  box-shadow:
+    0 0 0 2px rgb(251 255 242 / 0.08) inset,
+    0 0 28px rgb(132 204 22 / 0.18);
+}
+
+.board[data-hit="true"] {
+  border-color: #eab308;
 }
 
 .hole {
+  display: grid;
   min-width: 0;
   min-height: 0;
+  place-items: center;
   border: 3px solid rgb(251 255 242 / 0.38);
   border-radius: 999px;
   background:
-    radial-gradient(circle at 50% 64%, #1b120c 0 42%, transparent 43%),
+    radial-gradient(circle at 50% 66%, #1b120c 0 42%, transparent 43%),
     #2f3b1d;
   color: rgb(251 255 242 / 0.62);
-  font-size: 1.2rem;
+  font-size: clamp(0.75rem, 2.2vmin, 1.08rem);
   font-weight: 1000;
+  text-align: center;
+  transition:
+    border-color 80ms ease,
+    transform 80ms ease,
+    box-shadow 80ms ease;
+}
+
+.hole:disabled {
+  cursor: default;
 }
 
 .hole.is-active {
-  border-color: #eab308;
+  border-color: #fb923c;
   background:
-    radial-gradient(circle at 50% 36%, #facc15 0 18%, transparent 19%),
-    radial-gradient(circle at 50% 60%, #a16207 0 34%, transparent 35%),
+    radial-gradient(circle at 42% 36%, #1b120c 0 4%, transparent 5%),
+    radial-gradient(circle at 58% 36%, #1b120c 0 4%, transparent 5%),
+    radial-gradient(circle at 50% 55%, #a16207 0 31%, transparent 32%),
+    radial-gradient(circle at 50% 66%, #1b120c 0 43%, transparent 44%),
     #2f3b1d;
   color: #fbfff2;
-  box-shadow: 0 0 24px rgb(234 179 8 / 0.3);
+  box-shadow: 0 0 24px rgb(251 146 60 / 0.28);
+  transform: translateY(-2px);
+}
+
+.hole.is-gold {
+  border-color: #eab308;
+  background:
+    radial-gradient(circle at 42% 36%, #1b120c 0 4%, transparent 5%),
+    radial-gradient(circle at 58% 36%, #1b120c 0 4%, transparent 5%),
+    radial-gradient(circle at 50% 55%, #facc15 0 31%, transparent 32%),
+    radial-gradient(circle at 50% 66%, #1b120c 0 43%, transparent 44%),
+    #2f3b1d;
+  color: #fbfff2;
+  box-shadow: 0 0 26px rgb(234 179 8 / 0.38);
+}
+
+.hole.is-hit {
+  transform: scale(0.96);
+}
+
+.overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  min-width: min(74%, 320px);
+  min-height: 110px;
+  place-items: center;
+  border: 2px solid #eab308;
+  border-radius: 8px;
+  padding: 16px;
+  background: rgb(13 16 8 / 0.88);
+  box-shadow: 0 0 24px rgb(234 179 8 / 0.24);
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay strong {
+  color: #eab308;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.overlay span {
+  color: #fbfff2;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.shell[data-phase="game-over"] .board {
+  border-color: #ef4444;
+}
+
+.shell[data-phase="finished"] .board {
+  border-color: #84cc16;
+}
+
+@media (max-width: 680px) {
+  .hud {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
+  .shell {
+    gap: 8px;
+    padding: 10px;
+  }
+
   .topbar {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .topbar h1 {
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .brand h1 {
     font-size: 2.35rem;
   }
 
+  .hud > div {
+    min-height: 46px;
+  }
+
+  .hud strong {
+    font-size: 1.12rem;
+  }
+
   .board {
-    width: min(100%, calc(100svh - 220px));
+    width: min(100%, calc(100svh - 250px));
     gap: 8px;
     padding: 8px;
   }
