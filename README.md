@@ -59,3 +59,4 @@ corepack pnpm run dev
 - [Whack Mole](games/whack-mole/README.md)
 - [Pong Duel](games/pong-duel/README.md)
 - [Memory Flip](games/memory-flip/README.md)
+- [Laser Grid](games/laser-grid/README.md)

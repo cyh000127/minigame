@@ -141,6 +141,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#f97316',
     status: 'playable',
   },
+  {
+    slug: 'laser-grid',
+    title: 'Laser Grid',
+    genre: 'Grid Survival',
+    description: '5x5 격자에서 경고 후 발사되는 행/열 레이저를 피해 오래 버티는 회피 게임',
+    controls: ['Arrow Keys', 'WASD', 'Space'],
+    accent: '#38bdf8',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
