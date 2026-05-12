@@ -5,6 +5,8 @@ import {
   forceGameOver,
   getCueDurationMs,
   getCueGapMs,
+  getExpectedPad,
+  getInputMode,
   getKeyboardPad,
   getRandomPad,
   getSpeedLevel,
@@ -47,6 +49,7 @@ describe('simon says engine', () => {
       sequence: ['up', 'left'],
       inputIndex: 0,
       round: 2,
+      inputMode: 'forward',
       score: 0,
       bestScore: 0,
       streak: 0,
@@ -67,6 +70,7 @@ describe('simon says engine', () => {
       sequence: ['up'],
       inputIndex: 0,
       round: 1,
+      inputMode: 'forward',
       score: 0,
       bestScore: 0,
       streak: 0,
@@ -88,6 +92,7 @@ describe('simon says engine', () => {
       sequence: ['down'],
       inputIndex: 0,
       round: 4,
+      inputMode: 'forward',
       score: 180,
       bestScore: 120,
       streak: 5,
@@ -125,6 +130,26 @@ describe('simon says engine', () => {
     expect(getCueDurationMs(40)).toBe(260);
     expect(getCueGapMs(1)).toBe(180);
     expect(getCueGapMs(40)).toBe(90);
+  });
+
+  it('uses reverse input mode every fourth round', () => {
+    const state: SimonState = {
+      phase: 'input',
+      previousPhase: null,
+      sequence: ['up', 'right', 'down'],
+      inputIndex: 0,
+      round: 4,
+      inputMode: 'reverse',
+      score: 0,
+      bestScore: 0,
+      streak: 0,
+    };
+    const next = pressPad(state, 'down');
+
+    expect(getInputMode(4)).toBe('reverse');
+    expect(getExpectedPad(state)).toBe('down');
+    expect(next.phase).toBe('input');
+    expect(next.inputIndex).toBe(1);
   });
 
   it('maps random values and keyboard input to pads', () => {

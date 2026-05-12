@@ -23,6 +23,12 @@ const PAD_META: Readonly<Record<PadId, { label: string; key: string }>> = {
   down: { label: 'DOWN', key: 'S' },
   left: { label: 'LEFT', key: 'A' },
 };
+const PAD_FREQUENCIES: Readonly<Record<PadId, number>> = {
+  up: 523.25,
+  right: 659.25,
+  down: 783.99,
+  left: 392,
+};
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -35,6 +41,7 @@ const appRoot = app;
 let state = createGameState(readBestScore());
 let activePad: PadId | null = null;
 let cueIndex = 0;
+let audioContext: AudioContext | null = null;
 const timers = new Set<number>();
 
 appRoot.innerHTML = `
@@ -67,6 +74,10 @@ appRoot.innerHTML = `
         <span>SPEED</span>
         <strong data-speed>01</strong>
       </div>
+      <div>
+        <span>MODE</span>
+        <strong data-mode>FWD</strong>
+      </div>
     </section>
 
     <section class="stage" aria-label="Simon Says play area">
@@ -96,6 +107,7 @@ const scoreElement = queryElement<HTMLElement>('[data-score]');
 const roundElement = queryElement<HTMLElement>('[data-round]');
 const bestElement = queryElement<HTMLElement>('[data-best]');
 const speedElement = queryElement<HTMLElement>('[data-speed]');
+const modeElement = queryElement<HTMLElement>('[data-mode]');
 const overlay = queryElement<HTMLElement>('[data-overlay]');
 const statusTitle = queryElement<HTMLElement>('[data-status-title]');
 const statusHelp = queryElement<HTMLElement>('[data-status-help]');
@@ -167,6 +179,8 @@ function handleHubMessage(event: MessageEvent): void {
 }
 
 function handlePadInput(pad: PadId): void {
+  unlockAudio();
+
   if (state.phase === 'ready') {
     play();
     return;
@@ -179,6 +193,7 @@ function handlePadInput(pad: PadId): void {
   const previousScore = state.score;
   state = pressPad(state, pad);
   persistBestScore(state.bestScore);
+  playPadTone(pad, state.phase === 'game-over' ? 0.18 : 0.09);
   pulsePad(pad, state.phase === 'game-over' ? 'wrong' : 'manual');
   render();
 
@@ -208,6 +223,8 @@ function togglePlay(): void {
 }
 
 function play(): void {
+  unlockAudio();
+
   if (state.phase === 'paused') {
     state = resumeGame(state);
   } else {
@@ -281,6 +298,7 @@ function showNextCue(): void {
   }
 
   activePad = pad;
+  playPadTone(pad, 0.14);
   render();
 
   scheduleTimer(() => {
@@ -310,6 +328,7 @@ function render(): void {
   roundElement.textContent = String(state.round).padStart(2, '0');
   bestElement.textContent = formatScore(state.bestScore);
   speedElement.textContent = String(getSpeedLevel(Math.max(1, state.round))).padStart(2, '0');
+  modeElement.textContent = state.inputMode === 'reverse' ? 'REV' : 'FWD';
   toggleButton.textContent = getToggleLabel(state);
   overlay.hidden = state.phase === 'input' || state.phase === 'showing';
   statusTitle.textContent = getStatusTitle(state);
@@ -356,6 +375,33 @@ function getStatusHelp(current: SimonState): string {
   }
 
   return 'WATCH THE PATTERN';
+}
+
+function unlockAudio(): void {
+  audioContext ??= new AudioContext();
+
+  if (audioContext.state === 'suspended') {
+    void audioContext.resume();
+  }
+}
+
+function playPadTone(pad: PadId, durationSeconds: number): void {
+  if (!audioContext) {
+    return;
+  }
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const now = audioContext.currentTime;
+
+  oscillator.type = 'sine';
+  oscillator.frequency.value = PAD_FREQUENCIES[pad];
+  gain.gain.setValueAtTime(0.045, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + durationSeconds);
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start(now);
+  oscillator.stop(now + durationSeconds);
 }
 
 function formatScore(score: number): string {

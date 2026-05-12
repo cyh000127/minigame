@@ -1,5 +1,6 @@
 export type PadId = 'up' | 'right' | 'down' | 'left';
 export type GamePhase = 'ready' | 'showing' | 'input' | 'paused' | 'game-over';
+export type InputMode = 'forward' | 'reverse';
 export type RandomSource = () => number;
 
 export interface SimonState {
@@ -8,6 +9,7 @@ export interface SimonState {
   readonly sequence: readonly PadId[];
   readonly inputIndex: number;
   readonly round: number;
+  readonly inputMode: InputMode;
   readonly score: number;
   readonly bestScore: number;
   readonly streak: number;
@@ -29,6 +31,7 @@ export function createGameState(bestScore = 0): SimonState {
     sequence: [],
     inputIndex: 0,
     round: 0,
+    inputMode: 'forward',
     score: 0,
     bestScore,
     streak: 0,
@@ -54,6 +57,7 @@ export function startGame(
     sequence: [getRandomPad(random)],
     inputIndex: 0,
     round: 1,
+    inputMode: getInputMode(1),
     streak: 0,
   };
 }
@@ -103,7 +107,7 @@ export function pressPad(
     return state;
   }
 
-  const expectedPad = state.sequence[state.inputIndex];
+  const expectedPad = getExpectedPad(state);
 
   if (expectedPad !== pad) {
     return {
@@ -139,6 +143,7 @@ export function pressPad(
     sequence: [...state.sequence, getRandomPad(random)],
     inputIndex: 0,
     round: state.round + 1,
+    inputMode: getInputMode(state.round + 1),
     score,
     bestScore: Math.max(state.bestScore, score),
     streak: state.streak + 1,
@@ -169,6 +174,18 @@ export function getRoundBonusScore(round: number): number {
 
 export function getSpeedLevel(round: number): number {
   return Math.floor(Math.max(0, round - 1) / SPEED_UP_EVERY_ROUNDS) + 1;
+}
+
+export function getInputMode(round: number): InputMode {
+  return round > 0 && round % 4 === 0 ? 'reverse' : 'forward';
+}
+
+export function getExpectedPad(state: Pick<SimonState, 'sequence' | 'inputIndex' | 'inputMode'>): PadId | undefined {
+  if (state.inputMode === 'reverse') {
+    return state.sequence[state.sequence.length - 1 - state.inputIndex];
+  }
+
+  return state.sequence[state.inputIndex];
 }
 
 export function getCueDurationMs(round: number): number {
