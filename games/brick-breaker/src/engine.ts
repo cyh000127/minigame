@@ -6,9 +6,9 @@ export const speedIncreaseEvery = 5;
 export const speedIncreaseMultiplier = 1.05;
 export const maxPaddleBounceAngle = (60 * Math.PI) / 180;
 
-export type BrickKind = 'normal' | 'solid';
+export type BrickKind = 'normal' | 'solid' | 'bonus';
 export type ItemType = 'expand' | 'multi-ball' | 'power-shot' | 'magnet';
-type StageCell = '.' | '1' | '2';
+type StageCell = '.' | '1' | '2' | '3';
 
 export interface Vector {
   x: number;
@@ -35,6 +35,7 @@ export interface RandomStageOptions {
   minBrickRatio?: number;
   maxBrickRatio?: number;
   solidChance?: number;
+  bonusChance?: number;
 }
 
 export class Ball {
@@ -179,7 +180,15 @@ export class Brick {
   }
 
   get baseScore(): number {
-    return this.kind === 'solid' ? 250 : 100;
+    if (this.kind === 'solid') {
+      return 250;
+    }
+
+    if (this.kind === 'bonus') {
+      return 180;
+    }
+
+    return 100;
   }
 
   hit(powerShot = false): boolean {
@@ -325,7 +334,7 @@ export function createStageBricks(stageIndex: number, options: RandomStageOption
             width: brickWidth,
             height: brickHeight
           },
-          cell === '2' ? 'solid' : 'normal'
+          cell === '2' ? 'solid' : cell === '3' ? 'bonus' : 'normal'
         )
       ];
     })
@@ -338,6 +347,7 @@ export function createRandomStageLayout(stageIndex: number, options: RandomStage
   const minBrickRatio = options.minBrickRatio ?? 0.54;
   const maxBrickRatio = options.maxBrickRatio ?? 0.76;
   const solidChance = options.solidChance ?? Math.min(0.34, 0.16 + stageIndex * 0.025);
+  const bonusChance = options.bonusChance ?? Math.min(0.16, 0.06 + stageIndex * 0.012);
   const seed = options.seed ?? stageIndex + 1;
   const random = createSeededRandom(seed * 1013 + rows * 37 + cols * 17);
   const maxAttempts = 80;
@@ -349,6 +359,7 @@ export function createRandomStageLayout(stageIndex: number, options: RandomStage
       minBrickRatio,
       maxBrickRatio,
       solidChance,
+      bonusChance,
       random
     });
 
@@ -357,7 +368,7 @@ export function createRandomStageLayout(stageIndex: number, options: RandomStage
     }
   }
 
-  return createGuaranteedClearableLayout(rows, cols, solidChance, random);
+  return createGuaranteedClearableLayout(rows, cols, solidChance, bonusChance, random);
 }
 
 export function isStageLayoutClearable(layout: string[]): boolean {
@@ -408,6 +419,7 @@ function createRandomLayoutCandidate({
   minBrickRatio,
   maxBrickRatio,
   solidChance,
+  bonusChance,
   random
 }: {
   rows: number;
@@ -415,6 +427,7 @@ function createRandomLayoutCandidate({
   minBrickRatio: number;
   maxBrickRatio: number;
   solidChance: number;
+  bonusChance: number;
   random: () => number;
 }): string[] {
   const brickRatio = minBrickRatio + random() * (maxBrickRatio - minBrickRatio);
@@ -433,7 +446,8 @@ function createRandomLayoutCandidate({
         continue;
       }
 
-      const cell: StageCell = random() < solidChance ? '2' : '1';
+      const roll = random();
+      const cell: StageCell = roll < bonusChance ? '3' : roll < bonusChance + solidChance ? '2' : '1';
 
       grid[row]![col] = cell;
 
@@ -443,12 +457,18 @@ function createRandomLayoutCandidate({
     }
   }
 
-  ensureMinimumBrickCount(grid, Math.ceil(rows * cols * minBrickRatio), solidChance, random);
+  ensureMinimumBrickCount(grid, Math.ceil(rows * cols * minBrickRatio), solidChance, bonusChance, random);
 
   return grid.map((row) => row.join(''));
 }
 
-function createGuaranteedClearableLayout(rows: number, cols: number, solidChance: number, random: () => number): string[] {
+function createGuaranteedClearableLayout(
+  rows: number,
+  cols: number,
+  solidChance: number,
+  bonusChance: number,
+  random: () => number
+): string[] {
   const grid: StageCell[][] = Array.from({ length: rows }, () => Array.from({ length: cols }, () => '.'));
   const center = Math.floor(cols / 2);
 
@@ -458,7 +478,9 @@ function createGuaranteedClearableLayout(rows: number, cols: number, solidChance
       const chance = Math.max(0.28, 0.9 - distance * 0.12 - row * 0.04);
 
       if (random() < chance) {
-        grid[row]![col] = random() < solidChance ? '2' : '1';
+        const roll = random();
+
+        grid[row]![col] = roll < bonusChance ? '3' : roll < bonusChance + solidChance ? '2' : '1';
       }
     }
   }
@@ -470,6 +492,7 @@ function ensureMinimumBrickCount(
   grid: StageCell[][],
   minimumBrickCount: number,
   solidChance: number,
+  bonusChance: number,
   random: () => number
 ) {
   let currentCount = countBricks(grid);
@@ -482,7 +505,9 @@ function ensureMinimumBrickCount(
       continue;
     }
 
-    grid[row]![col] = random() < solidChance ? '2' : '1';
+    const roll = random();
+
+    grid[row]![col] = roll < bonusChance ? '3' : roll < bonusChance + solidChance ? '2' : '1';
     currentCount += 1;
   }
 }
@@ -494,7 +519,7 @@ function normalizeStageLayout(layout: string[]): StageCell[][] {
     .filter((row) => row.length === width)
     .map((row) =>
       [...row].map((cell): StageCell => {
-        if (cell === '1' || cell === '2') {
+        if (cell === '1' || cell === '2' || cell === '3') {
           return cell;
         }
 

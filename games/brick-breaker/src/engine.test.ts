@@ -73,10 +73,13 @@ describe('brick breaker engine', () => {
   it('tracks normal and solid brick damage', () => {
     const normalBrick = new Brick({ x: 0, y: 0, width: 20, height: 10 }, 'normal');
     const solidBrick = new Brick({ x: 0, y: 0, width: 20, height: 10 }, 'solid');
+    const bonusBrick = new Brick({ x: 0, y: 0, width: 20, height: 10 }, 'bonus');
 
     expect(normalBrick.hit()).toBe(true);
     expect(solidBrick.hit()).toBe(false);
     expect(solidBrick.hit()).toBe(true);
+    expect(bonusBrick.hit()).toBe(true);
+    expect(bonusBrick.baseScore).toBe(180);
   });
 
   it('increases speed every five broken bricks', () => {
@@ -94,6 +97,7 @@ describe('brick breaker engine', () => {
     expect(isStageLayoutClearable(firstLayout)).toBe(true);
     expect(bricks.length).toBeGreaterThan(0);
     expect(bricks.some((brick) => brick.kind === 'solid')).toBe(true);
+    expect(createStageBricks(4, { seed: 99, bonusChance: 1 }).every((brick) => brick.kind === 'bonus')).toBe(true);
     expect(bricks.some((brick) => brick.kind === 'normal')).toBe(true);
   });
 

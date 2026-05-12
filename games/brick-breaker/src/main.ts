@@ -54,6 +54,10 @@ app.innerHTML = `
         <span>COMBO</span>
         <strong data-combo>00</strong>
       </div>
+      <div>
+        <span>SEED</span>
+        <button class="seed-button" type="button" data-seed>00000000</button>
+      </div>
     </header>
     <section class="cabinet" aria-label="Neon Brick Breaker board">
       <canvas id="game-canvas" width="${playfieldWidth}" height="${playfieldHeight}"></canvas>
@@ -80,6 +84,7 @@ const scoreElement = queryElement<HTMLElement>('[data-score]');
 const stageElement = queryElement<HTMLElement>('[data-stage]');
 const livesElement = queryElement<HTMLElement>('[data-lives]');
 const comboElement = queryElement<HTMLElement>('[data-combo]');
+const seedButton = queryElement<HTMLButtonElement>('[data-seed]');
 const overlayElement = queryElement<HTMLElement>('[data-overlay]');
 const titleElement = queryElement<HTMLElement>('[data-title]');
 const copyElement = queryElement<HTMLElement>('[data-copy]');
@@ -88,7 +93,8 @@ const startButton = queryElement<HTMLButtonElement>('[data-start]');
 const itemTypes: ItemType[] = ['expand', 'multi-ball', 'power-shot', 'magnet'];
 const brickColors = {
   normal: ['#33f4ff', '#30f2a2'],
-  solid: ['#ff2ed1', '#ffce57']
+  solid: ['#ff2ed1', '#ffce57'],
+  bonus: ['#a3ff12', '#f8f7ff']
 } as const;
 
 let phase: GamePhase = 'ready';
@@ -109,6 +115,15 @@ let particles: Particle[] = [];
 
 startButton.addEventListener('click', () => {
   startRound();
+});
+
+seedButton.addEventListener('click', () => {
+  const sharedUrl = new URL(window.location.href);
+
+  sharedUrl.searchParams.set('seed', runSeed.toString());
+  void navigator.clipboard?.writeText(sharedUrl.toString());
+  seedButton.textContent = 'COPIED';
+  window.setTimeout(syncHud, 900);
 });
 
 canvas.addEventListener('pointermove', (event) => {
@@ -320,7 +335,11 @@ function resolveBrickCollision(ball: Ball, nowMs: number) {
       combo += 1;
       bricksBroken += 1;
       score += calculateBrickScore(brick.baseScore, combo);
-      spawnParticles(brick.x + brick.width / 2, brick.y + brick.height / 2, brick.kind === 'solid' ? '#ff2ed1' : '#33f4ff');
+      spawnParticles(
+        brick.x + brick.width / 2,
+        brick.y + brick.height / 2,
+        brick.kind === 'solid' ? '#ff2ed1' : brick.kind === 'bonus' ? '#a3ff12' : '#33f4ff'
+      );
       maybeDropItem(brick, nowMs);
 
       if (shouldIncreaseSpeed(bricksBroken)) {
@@ -364,7 +383,7 @@ function clearStage(nowMs: number) {
 }
 
 function maybeDropItem(brick: Brick, nowMs: number) {
-  if (Math.random() >= 0.15) {
+  if (brick.kind !== 'bonus' && Math.random() >= 0.15) {
     return;
   }
 
@@ -374,7 +393,9 @@ function maybeDropItem(brick: Brick, nowMs: number) {
   item.vy = 130 + Math.min(90, stageIndex * 10);
   items.push(item);
 
-  if (type === 'power-shot') {
+  if (brick.kind === 'bonus') {
+    spawnParticles(item.x, item.y, '#a3ff12', 22);
+  } else if (type === 'power-shot') {
     spawnParticles(item.x, item.y, '#ff2ed1', 16);
   } else if (type === 'multi-ball') {
     spawnParticles(item.x, item.y, '#30f2a2', 16);
@@ -515,7 +536,8 @@ function drawBoard() {
 
 function drawBricks() {
   for (const brick of bricks) {
-    const colors = brick.kind === 'solid' ? brickColors.solid : brickColors.normal;
+    const colors =
+      brick.kind === 'solid' ? brickColors.solid : brick.kind === 'bonus' ? brickColors.bonus : brickColors.normal;
     const ratio = brick.hitsRemaining / brick.maxHits;
 
     graphics.shadowColor = colors[0];
@@ -592,6 +614,7 @@ function syncHud() {
   stageElement.textContent = (stageIndex + 1).toString().padStart(2, '0');
   livesElement.textContent = lives.toString();
   comboElement.textContent = combo.toString().padStart(2, '0');
+  seedButton.textContent = runSeed.toString(16).toUpperCase().padStart(8, '0');
 }
 
 function updateOverlay() {
@@ -706,5 +729,11 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function createRunSeed(): number {
+  const sharedSeed = Number.parseInt(new URLSearchParams(window.location.search).get('seed') ?? '', 10);
+
+  if (Number.isFinite(sharedSeed) && sharedSeed > 0) {
+    return sharedSeed >>> 0;
+  }
+
   return Math.floor(Math.random() * 0xffffffff);
 }
