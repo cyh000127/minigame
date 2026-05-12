@@ -96,6 +96,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#f97316',
     status: 'playable',
   },
+  {
+    slug: 'perfect-stop',
+    title: 'Perfect Stop',
+    genre: 'Timing Reflex',
+    description: '움직이는 커서를 목표 구간 안에서 멈추는 타이밍 반응 게임',
+    controls: ['Space', 'Click', 'Touch'],
+    accent: '#22d3ee',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();

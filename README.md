@@ -54,3 +54,4 @@ corepack pnpm run dev
 - [Minesweeper](games/minesweeper/README.md)
 - [Snake](games/snake/README.md)
 - [Simon Says](games/simon-says/README.md)
+- [Perfect Stop](games/perfect-stop/README.md)
