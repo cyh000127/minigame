@@ -3,7 +3,6 @@ import {
   createGameUrl,
   createLifecycleMessage,
   DEFAULT_GAME,
-  findGameBySlug,
   GAMES,
   type GameEntry,
   type MiniGameRuntime,
@@ -28,7 +27,7 @@ if (!app) {
 const appRoot = app;
 
 appRoot.innerHTML = `
-  <main class="hub-shell">
+  <main class="hub-shell" data-hub-shell data-view="library">
     <header class="topbar">
       <div>
         <p>MINIGAME HEAVEN</p>
@@ -36,17 +35,41 @@ appRoot.innerHTML = `
       </div>
       <div class="topbar__meta">
         <span>${GAMES.length.toString().padStart(2, '0')} GAMES</span>
-        <strong data-active-title>SELECT</strong>
+        <strong data-active-title>GAME LIST</strong>
       </div>
     </header>
 
-    <section class="hub-layout" aria-label="Minigame launcher">
-      <aside class="selector" aria-label="Game selector">
+    <section class="library-view" data-library-view aria-label="Game library">
+      <div class="library__head">
+        <div class="library__title">
+          <span>GAME LIBRARY</span>
+          <strong>게임 목록</strong>
+        </div>
+        <div class="library__stats" aria-label="Local library summary">
+          <span>
+            <small>LOCAL PLAYS</small>
+            <strong data-library-plays>0</strong>
+          </span>
+          <span>
+            <small>BEST SCORE</small>
+            <strong data-library-best>0</strong>
+          </span>
+          <span>
+            <small>ACHIEVEMENTS</small>
+            <strong data-library-achievements>0/0</strong>
+          </span>
+        </div>
+      </div>
+      <div class="game-list game-list--library" data-game-list></div>
+    </section>
+
+    <section class="hub-layout play-view" data-play-view aria-label="Minigame launcher" hidden>
+      <aside class="selector play-sidebar" aria-label="Local progress dashboard">
         <div class="selector__head">
-          <span>SELECT GAME</span>
+          <span>LOCAL DASHBOARD</span>
           <strong data-selected-count>${GAMES.length}</strong>
         </div>
-        <section class="progress-panel" aria-label="Local progress dashboard">
+        <section class="progress-panel progress-panel--expanded" aria-label="Local progress dashboard">
           <div class="progress-panel__head">
             <span>LOCAL RECORD</span>
             <strong data-progress-summary>0/0</strong>
@@ -73,7 +96,7 @@ appRoot.innerHTML = `
           <div class="achievement-track" data-achievements></div>
           <button class="reset-progress" data-reset-progress type="button">RESET LOCAL</button>
         </section>
-        <div class="game-list" data-game-list></div>
+        <button class="back-to-library" data-back-to-library type="button">게임 선택화면으로 돌아가기</button>
       </aside>
 
       <section class="runner" aria-label="Game runner">
@@ -101,7 +124,7 @@ appRoot.innerHTML = `
           <iframe data-frame title="Selected minigame" loading="lazy"></iframe>
           <div class="stage__empty" data-stage-empty>
             <span>READY</span>
-            <strong>게임을 고르면 이 영역에서 실행됩니다</strong>
+            <strong>RUN을 누르면 이 영역에서 실행됩니다</strong>
           </div>
           <div class="stage__pause" data-stage-pause>
             <span data-pause-label>PAUSED</span>
@@ -110,7 +133,7 @@ appRoot.innerHTML = `
         </div>
 
         <footer class="runner__status">
-          <span data-status>게임 카드를 선택한 뒤 RUN을 누르세요.</span>
+          <span data-status>게임 목록에서 플레이할 게임을 선택하세요.</span>
           <span data-controls></span>
         </footer>
       </section>
@@ -118,6 +141,9 @@ appRoot.innerHTML = `
   </main>
 `;
 
+const hubShell = mustQuery<HTMLElement>('[data-hub-shell]');
+const libraryView = mustQuery<HTMLElement>('[data-library-view]');
+const playView = mustQuery<HTMLElement>('[data-play-view]');
 const gameList = mustQuery<HTMLElement>('[data-game-list]');
 const activeTitle = mustQuery<HTMLElement>('[data-active-title]');
 const runnerTitle = mustQuery<HTMLElement>('[data-runner-title]');
@@ -133,6 +159,9 @@ const pauseLabel = mustQuery<HTMLElement>('[data-pause-label]');
 const pauseTitle = mustQuery<HTMLElement>('[data-pause-title]');
 const statusText = mustQuery<HTMLElement>('[data-status]');
 const controlsText = mustQuery<HTMLElement>('[data-controls]');
+const libraryPlaysText = mustQuery<HTMLElement>('[data-library-plays]');
+const libraryBestText = mustQuery<HTMLElement>('[data-library-best]');
+const libraryAchievementsText = mustQuery<HTMLElement>('[data-library-achievements]');
 const progressSummary = mustQuery<HTMLElement>('[data-progress-summary]');
 const totalPlaysText = mustQuery<HTMLElement>('[data-total-plays]');
 const totalBestText = mustQuery<HTMLElement>('[data-total-best]');
@@ -142,12 +171,15 @@ const selectedBestText = mustQuery<HTMLElement>('[data-selected-best]');
 const selectedPlaysText = mustQuery<HTMLElement>('[data-selected-plays]');
 const achievementsList = mustQuery<HTMLElement>('[data-achievements]');
 const resetProgressButton = mustQuery<HTMLButtonElement>('[data-reset-progress]');
+const backToLibraryButton = mustQuery<HTMLButtonElement>('[data-back-to-library]');
 
 interface ActiveHubSession {
   slug: string;
   startedAtMs: number;
   score: number | null;
 }
+
+type HubRoute = { view: 'library' } | { view: 'runner'; game: GameEntry };
 
 class FrameGameRuntime implements MiniGameRuntime {
   #activeGame: GameEntry | null = null;
@@ -224,14 +256,16 @@ class FrameGameRuntime implements MiniGameRuntime {
 }
 
 const runtime = new FrameGameRuntime();
-let selectedGame = findGameBySlug(window.location.hash.replace('#', '') || DEFAULT_GAME.slug);
+let selectedGame = DEFAULT_GAME;
 let hubProgress = readHubProgress(window.localStorage);
 let activeSession: ActiveHubSession | null = null;
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
 renderGameList();
-selectGame(selectedGame);
+syncRouteFromHash();
+
+window.addEventListener('hashchange', syncRouteFromHash);
 
 startButton.addEventListener('click', () => {
   beginLocalSession(selectedGame);
@@ -265,6 +299,10 @@ resetProgressButton.addEventListener('click', () => {
   hubProgress = resetHubProgress(window.localStorage);
   renderProgressViews();
   statusText.textContent = '로컬 기록을 초기화했습니다.';
+});
+
+backToLibraryButton.addEventListener('click', () => {
+  goToLibrary();
 });
 
 window.addEventListener('message', (event) => {
@@ -302,13 +340,14 @@ function renderGameList(): void {
     const record = getGameProgress(hubProgress, game.slug);
 
     return `
-      <button class="game-card" data-game="${game.slug}" type="button" style="--accent: ${game.accent};">
+      <button class="game-card library-card" data-game="${game.slug}" type="button" style="--accent: ${game.accent};">
         <span class="game-card__visual" aria-hidden="true"></span>
         <span class="game-card__content">
           <span class="game-card__meta">${game.genre} / ${status}</span>
           <strong>${game.title}</strong>
-          <span>${game.description}</span>
+          <span class="game-card__description">${game.description}</span>
           <span class="game-card__record">BEST ${formatNumber(record.bestScore)} / RUN ${formatNumber(record.plays)}</span>
+          <span class="game-card__cta">진입</span>
         </span>
       </button>
     `;
@@ -316,17 +355,80 @@ function renderGameList(): void {
 
   for (const button of gameList.querySelectorAll<HTMLButtonElement>('[data-game]')) {
     button.addEventListener('click', () => {
-      const game = findGameBySlug(button.dataset.game ?? '');
-      selectGame(game);
+      const game = getRegisteredGame(button.dataset.game) ?? DEFAULT_GAME;
+      goToGame(game);
     });
   }
 
   markSelectedGame();
 }
 
-function selectGame(game: GameEntry): void {
+function syncRouteFromHash(): void {
+  const route = parseRoute(window.location.hash);
+
+  if (route.view === 'runner') {
+    showRunnerView(route.game);
+    return;
+  }
+
+  showLibraryView();
+}
+
+function parseRoute(hash: string): HubRoute {
+  const route = decodeURIComponent(hash.replace(/^#/, '')).trim();
+
+  if (!route || route === 'library' || route === 'games') {
+    return { view: 'library' };
+  }
+
+  const slug = route.startsWith('game/') ? route.slice('game/'.length) : route;
+  const game = getRegisteredGame(slug);
+
+  return game ? { view: 'runner', game } : { view: 'library' };
+}
+
+function goToGame(game: GameEntry): void {
+  const nextHash = `#game/${game.slug}`;
+
+  if (window.location.hash === nextHash) {
+    showRunnerView(game);
+    return;
+  }
+
+  window.location.hash = nextHash;
+}
+
+function goToLibrary(): void {
+  if (!window.location.hash || window.location.hash === '#library') {
+    showLibraryView();
+    return;
+  }
+
+  window.location.hash = 'library';
+}
+
+function showLibraryView(): void {
+  if (activeSession) {
+    finishLocalSession({ completed: false });
+  }
+
+  runtime.pause();
+  hubShell.dataset.view = 'library';
+  libraryView.hidden = false;
+  playView.hidden = true;
+  activeTitle.textContent = 'GAME LIST';
+  renderProgressViews();
+}
+
+function showRunnerView(game: GameEntry): void {
+  hubShell.dataset.view = 'runner';
+  libraryView.hidden = true;
+  playView.hidden = false;
+  updateSelectedGame(game);
+}
+
+function updateSelectedGame(game: GameEntry): void {
   selectedGame = game;
-  window.history.replaceState(null, '', `#${game.slug}`);
   activeTitle.textContent = game.title.toUpperCase();
   runnerTitle.textContent = game.title;
   runnerGenre.textContent = game.genre;
@@ -401,6 +503,9 @@ function renderDashboard(): void {
   const summary = summarizeHubProgress(hubProgress);
   const selectedRecord = getGameProgress(hubProgress, selectedGame.slug);
 
+  libraryPlaysText.textContent = formatNumber(summary.totalPlays);
+  libraryBestText.textContent = formatNumber(summary.totalBestScore);
+  libraryAchievementsText.textContent = `${summary.unlockedAchievementCount}/${summary.achievementCount}`;
   progressSummary.textContent = `${summary.unlockedAchievementCount}/${summary.achievementCount}`;
   totalPlaysText.textContent = formatNumber(summary.totalPlays);
   totalBestText.textContent = formatNumber(summary.totalBestScore);

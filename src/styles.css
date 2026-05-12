@@ -52,6 +52,7 @@ a:focus-visible {
 }
 
 .topbar,
+.library-view,
 .selector,
 .runner {
   border: 2px solid rgb(248 251 255 / 0.72);
@@ -70,6 +71,8 @@ a:focus-visible {
 }
 
 .topbar p,
+.library__title span,
+.library__stats small,
 .selector__head span,
 .progress-panel__head span,
 .progress-stats small,
@@ -80,7 +83,8 @@ a:focus-visible {
 .stage__pause span,
 .runner__status,
 .game-card__meta,
-.game-card__record {
+.game-card__record,
+.game-card__cta {
   color: #45d6ff;
   font-size: 0.78rem;
   font-weight: 900;
@@ -120,6 +124,58 @@ a:focus-visible {
   white-space: nowrap;
 }
 
+.library-view {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.library__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid rgb(248 251 255 / 0.18);
+  padding: 16px;
+}
+
+.library__title {
+  display: grid;
+  gap: 4px;
+}
+
+.library__title strong {
+  font-size: clamp(1.5rem, 4vw, 2.6rem);
+  line-height: 1;
+}
+
+.library__stats {
+  display: grid;
+  min-width: min(100%, 520px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.library__stats > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  border: 1px solid rgb(248 251 255 / 0.24);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgb(8 10 18 / 0.72);
+}
+
+.library__stats strong {
+  overflow: hidden;
+  color: #ffd25a;
+  font-size: 1.15rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .hub-layout {
   display: grid;
   min-height: 0;
@@ -133,6 +189,10 @@ a:focus-visible {
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 12px;
   padding: 14px;
+}
+
+.play-sidebar {
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .selector__head {
@@ -155,9 +215,16 @@ a:focus-visible {
 
 .progress-panel {
   display: grid;
+  min-height: 0;
   gap: 9px;
   border-bottom: 1px solid rgb(248 251 255 / 0.18);
   padding-bottom: 12px;
+}
+
+.progress-panel--expanded {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 .progress-panel__head {
@@ -225,9 +292,14 @@ a:focus-visible {
 .achievement-track {
   display: grid;
   max-height: 134px;
+  min-height: 0;
   gap: 6px;
   overflow: auto;
   padding-right: 2px;
+}
+
+.progress-panel--expanded .achievement-track {
+  max-height: none;
 }
 
 .achievement-item {
@@ -289,11 +361,31 @@ a:focus-visible {
   color: #ffd25a;
 }
 
+.back-to-library {
+  min-height: 48px;
+  border: 2px solid rgb(248 251 255 / 0.56);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgb(69 214 255 / 0.2), rgb(255 210 90 / 0.18));
+  color: #f8fbff;
+  font-weight: 900;
+}
+
+.back-to-library:hover {
+  border-color: #ffd25a;
+  color: #ffd25a;
+}
+
 .game-list {
   display: grid;
   align-content: start;
   gap: 10px;
   overflow: auto;
+}
+
+.game-list--library {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  padding: 16px;
 }
 
 .game-card {
@@ -363,7 +455,7 @@ a:focus-visible {
   white-space: nowrap;
 }
 
-.game-card__content > span:last-child {
+.game-card__description {
   color: rgb(248 251 255 / 0.78);
   font-size: 0.88rem;
   line-height: 1.35;
@@ -372,6 +464,15 @@ a:focus-visible {
 .game-card__record {
   color: #ffd25a;
   font-size: 0.74rem;
+}
+
+.game-card__cta {
+  justify-self: start;
+  border: 1px solid rgb(248 251 255 / 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: #f8fbff;
+  font-size: 0.72rem;
 }
 
 .runner {
@@ -502,8 +603,17 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .library__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .library__stats {
+    min-width: 0;
+  }
+
   .selector {
-    max-height: 430px;
+    max-height: none;
   }
 }
 
@@ -513,6 +623,7 @@ a:focus-visible {
   }
 
   .topbar,
+  .library__head,
   .runner__toolbar,
   .runner__status {
     align-items: stretch;
@@ -521,6 +632,15 @@ a:focus-visible {
 
   .topbar__meta {
     justify-items: start;
+  }
+
+  .library__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .game-list--library {
+    grid-template-columns: 1fr;
+    padding: 10px;
   }
 
   .game-card {
