@@ -115,6 +115,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'circuit-connect',
+    title: 'Circuit Connect',
+    genre: 'Rotation Puzzle',
+    description: '회로 타일을 회전해 전원에서 배터리까지 모든 전류를 연결하는 퍼즐',
+    controls: ['Click', 'Arrow Keys', 'Space', 'N'],
+    accent: '#2dd4bf',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
