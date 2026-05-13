@@ -56,6 +56,7 @@ corepack pnpm run dev
 - [Minesweeper](games/minesweeper/README.md)
 - [Sudoku](games/sudoku/README.md)
 - [Sliding Puzzle](games/sliding-puzzle/README.md)
+- [Lights Out](games/lights-out/README.md)
 - [Snake](games/snake/README.md)
 - [Simon Says](games/simon-says/README.md)
 - [Perfect Stop](games/perfect-stop/README.md)

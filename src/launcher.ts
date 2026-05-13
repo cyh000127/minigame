@@ -97,6 +97,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'lights-out',
+    title: 'Lights Out',
+    genre: 'Logic Puzzle',
+    description: '자기 칸과 상하좌우 불을 토글해 모든 불을 끄는 격자 퍼즐',
+    controls: ['Click', 'Arrow Keys', 'WASD', 'Space'],
+    accent: '#facc15',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
