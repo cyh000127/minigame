@@ -8,21 +8,29 @@ export interface Difficulty {
   readonly size: number;
   readonly toggleCount: number;
   readonly scoreBase: number;
-  readonly timePenalty: number;
+  readonly timeBonus: number;
   readonly movePenalty: number;
+  readonly roundTimeSeconds: number;
+  readonly minRoundTimeSeconds: number;
 }
 
 export interface PuzzleState {
   readonly difficulty: Difficulty;
   readonly board: LightBoard;
   readonly solutionMoves: readonly number[];
+  readonly round: number;
+  readonly score: number;
+  readonly failures: number;
   readonly moves: number;
   readonly elapsedSeconds: number;
+  readonly remainingSeconds: number;
+  readonly roundTimeSeconds: number;
 }
 
-export interface ScoreInput {
+export interface RoundScoreInput {
   readonly difficultyId: DifficultyId;
-  readonly elapsedSeconds: number;
+  readonly round: number;
+  readonly remainingSeconds: number;
   readonly moves: number;
 }
 
@@ -33,8 +41,10 @@ export const DIFFICULTIES: readonly Difficulty[] = [
     size: 3,
     toggleCount: 6,
     scoreBase: 2_500,
-    timePenalty: 5,
+    timeBonus: 8,
     movePenalty: 35,
+    roundTimeSeconds: 140,
+    minRoundTimeSeconds: 90,
   },
   {
     id: 'normal',
@@ -42,8 +52,10 @@ export const DIFFICULTIES: readonly Difficulty[] = [
     size: 5,
     toggleCount: 14,
     scoreBase: 5_500,
-    timePenalty: 7,
+    timeBonus: 10,
     movePenalty: 45,
+    roundTimeSeconds: 220,
+    minRoundTimeSeconds: 140,
   },
   {
     id: 'hard',
@@ -51,8 +63,10 @@ export const DIFFICULTIES: readonly Difficulty[] = [
     size: 7,
     toggleCount: 28,
     scoreBase: 9_500,
-    timePenalty: 9,
+    timeBonus: 12,
     movePenalty: 55,
+    roundTimeSeconds: 320,
+    minRoundTimeSeconds: 200,
   },
 ] as const;
 
@@ -73,10 +87,15 @@ export function createSolvedBoard(size: number): LightBoard {
 export function createPuzzleState(
   difficultyId: DifficultyId = 'easy',
   random: RandomSource = Math.random,
+  round = 1,
+  score = 0,
+  failures = 0,
 ): PuzzleState {
   const difficulty = getDifficulty(difficultyId);
   const solutionMoves = chooseUniqueIndexes(difficulty.size * difficulty.size, difficulty.toggleCount, random);
   let board = createSolvedBoard(difficulty.size);
+  const safeRound = Math.max(1, Math.floor(round));
+  const roundTimeSeconds = getRoundTimeSeconds(difficulty, safeRound);
 
   for (const index of solutionMoves) {
     board = toggleAt(board, difficulty.size, index);
@@ -88,8 +107,13 @@ export function createPuzzleState(
       difficulty,
       board,
       solutionMoves: [0],
+      round: safeRound,
+      score,
+      failures,
       moves: 0,
       elapsedSeconds: 0,
+      remainingSeconds: roundTimeSeconds,
+      roundTimeSeconds,
     };
   }
 
@@ -97,8 +121,13 @@ export function createPuzzleState(
     difficulty,
     board,
     solutionMoves,
+    round: safeRound,
+    score,
+    failures,
     moves: 0,
     elapsedSeconds: 0,
+    remainingSeconds: roundTimeSeconds,
+    roundTimeSeconds,
   };
 }
 
@@ -149,17 +178,58 @@ export function applyMoves(board: LightBoard, size: number, moves: readonly numb
 }
 
 export function tickTimer(state: PuzzleState, elapsedSeconds: number): PuzzleState {
+  const safeElapsedSeconds = Math.max(0, elapsedSeconds);
+
   return {
     ...state,
-    elapsedSeconds: state.elapsedSeconds + Math.max(0, elapsedSeconds),
+    elapsedSeconds: state.elapsedSeconds + safeElapsedSeconds,
+    remainingSeconds: Math.max(0, state.remainingSeconds - safeElapsedSeconds),
   };
 }
 
-export function calculateScore(input: ScoreInput): number {
-  const difficulty = getDifficulty(input.difficultyId);
-  const penalty = input.elapsedSeconds * difficulty.timePenalty + input.moves * difficulty.movePenalty;
+export function advanceRound(state: PuzzleState, random: RandomSource = Math.random): PuzzleState {
+  const roundScore = calculateRoundScore({
+    difficultyId: state.difficulty.id,
+    round: state.round,
+    remainingSeconds: state.remainingSeconds,
+    moves: state.moves,
+  });
 
-  return Math.max(100, difficulty.scoreBase - penalty);
+  return createPuzzleState(
+    state.difficulty.id,
+    random,
+    state.round + 1,
+    state.score + roundScore,
+    state.failures,
+  );
+}
+
+export function recordFailure(state: PuzzleState): PuzzleState {
+  return {
+    ...state,
+    failures: state.failures + 1,
+    remainingSeconds: 0,
+  };
+}
+
+export function isTimedOut(state: PuzzleState): boolean {
+  return state.remainingSeconds <= 0;
+}
+
+export function calculateRoundScore(input: RoundScoreInput): number {
+  const difficulty = getDifficulty(input.difficultyId);
+  const rawScore = difficulty.scoreBase
+    + input.round * 120
+    + Math.floor(input.remainingSeconds) * difficulty.timeBonus
+    - input.moves * difficulty.movePenalty;
+
+  return Math.max(100, rawScore);
+}
+
+export function getRoundTimeSeconds(difficulty: Difficulty, round: number): number {
+  const safeRound = Math.max(1, Math.floor(round));
+
+  return Math.max(difficulty.minRoundTimeSeconds, difficulty.roundTimeSeconds - (safeRound - 1) * 5);
 }
 
 export function getRow(index: number, size: number): number {

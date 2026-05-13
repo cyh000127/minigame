@@ -1,12 +1,16 @@
 import './styles.css';
 import {
   DIFFICULTIES,
-  calculateScore,
+  advanceRound,
+  calculateRoundScore,
   countLightsOn,
   createPuzzleState,
   getColumn,
   getRow,
   isSolved,
+  isTimedOut,
+  recordFailure,
+  tickTimer,
   toggleAt,
   type DifficultyId,
   type PuzzleState,
@@ -18,7 +22,7 @@ interface MiniGameLifecycleMessage {
   readonly gameSlug: string;
 }
 
-type GamePhase = 'playing' | 'paused' | 'won' | 'stopped';
+type GamePhase = 'playing' | 'paused' | 'failed' | 'stopped';
 
 const BEST_SCORE_PREFIX = 'minigame:lights-out:best-score:';
 
@@ -46,11 +50,11 @@ appRoot.innerHTML = `
         <strong data-level>Easy</strong>
       </div>
       <div>
-        <span>TIME</span>
+        <span>TIME LEFT</span>
         <strong data-time>00:00</strong>
       </div>
       <div>
-        <span>MOVES</span>
+        <span>ROUND</span>
         <strong data-moves>0</strong>
       </div>
       <div>
@@ -82,7 +86,7 @@ appRoot.innerHTML = `
           <strong data-selected>R1 C1</strong>
         </div>
         <button class="toggle-button" data-toggle-selected type="button">Toggle</button>
-        <p class="help-text">불이 켜진 칸을 모두 끄세요. 클릭으로 토글하고, 방향키/WASD로 선택 이동, Space/Enter로 토글합니다.</p>
+        <p class="help-text" data-help-text>제한시간 안에 모든 불을 끄면 점수를 얻고 새 맵으로 넘어갑니다.</p>
       </aside>
 
       <div class="overlay" data-overlay hidden>
@@ -103,6 +107,7 @@ const lightsElement = mustQuery<HTMLElement>('[data-lights]');
 const scoreElement = mustQuery<HTMLElement>('[data-score]');
 const bestElement = mustQuery<HTMLElement>('[data-best]');
 const selectedElement = mustQuery<HTMLElement>('[data-selected]');
+const helpText = mustQuery<HTMLElement>('[data-help-text]');
 const overlay = mustQuery<HTMLElement>('[data-overlay]');
 const overlayKicker = mustQuery<HTMLElement>('[data-overlay-kicker]');
 const overlayTitle = mustQuery<HTMLElement>('[data-overlay-title]');
@@ -115,11 +120,13 @@ let state: PuzzleState = createPuzzleState(difficultyId);
 let selectedIndex = 0;
 let phase: GamePhase = 'playing';
 let timerId = 0;
+let lastRoundGain = 0;
+let statusText = '제한시간 안에 모든 불을 끄세요.';
 
 newGameButton.addEventListener('click', () => startNewGame(difficultyId));
 toggleSelectedButton.addEventListener('click', () => toggleCell(selectedIndex));
 overlayAction.addEventListener('click', () => {
-  if (phase === 'won' || phase === 'stopped') {
+  if (phase === 'failed' || phase === 'stopped') {
     startNewGame(difficultyId);
     return;
   }
@@ -195,7 +202,10 @@ function startNewGame(nextDifficultyId: DifficultyId): void {
   state = createPuzzleState(difficultyId);
   selectedIndex = 0;
   phase = 'playing';
+  lastRoundGain = 0;
+  statusText = '제한시간 안에 모든 불을 끄세요.';
   startTimer();
+  notifyScore(0);
   render();
 }
 
@@ -211,20 +221,21 @@ function toggleCell(index: number): void {
   };
 
   if (isSolved(state.board)) {
-    completeGame();
+    completeRound();
     return;
   }
 
-  notifyScore(getCurrentScore());
   render();
 }
 
-function completeGame(): void {
-  phase = 'won';
-  stopTimer();
-  const score = getCurrentScore();
-  saveBestScore(difficultyId, score);
-  notifyGameOver(score);
+function completeRound(): void {
+  const previousScore = state.score;
+  const completedRound = state.round;
+  state = advanceRound(state);
+  selectedIndex = 0;
+  lastRoundGain = state.score - previousScore;
+  statusText = `${completedRound}라운드 클리어. +${lastRoundGain.toLocaleString('ko-KR')}점`;
+  notifyScore(state.score);
   render();
 }
 
@@ -239,7 +250,7 @@ function pauseGame(): void {
 }
 
 function resumeGame(): void {
-  if (phase === 'won' || phase === 'stopped') {
+  if (phase === 'failed' || phase === 'stopped') {
     return;
   }
 
@@ -249,12 +260,12 @@ function resumeGame(): void {
 }
 
 function stopGame(): void {
-  if (phase === 'won') {
+  if (phase === 'failed') {
     return;
   }
 
   phase = 'stopped';
-  stopTimer();
+  finishRun();
   render();
 }
 
@@ -264,10 +275,17 @@ function startTimer(): void {
   }
 
   timerId = window.setInterval(() => {
-    state = {
-      ...state,
-      elapsedSeconds: state.elapsedSeconds + 1,
-    };
+    state = tickTimer(state, 1);
+
+    if (isTimedOut(state)) {
+      state = recordFailure(state);
+      phase = 'failed';
+      statusText = `${state.round}라운드 시간초과. 점수를 기록했습니다.`;
+      finishRun();
+      render();
+      return;
+    }
+
     renderHud();
   }, 1_000);
 }
@@ -315,15 +333,16 @@ function render(): void {
 
 function renderHud(): void {
   levelElement.textContent = `${state.difficulty.label} ${state.difficulty.size}x${state.difficulty.size}`;
-  timeElement.textContent = formatTime(state.elapsedSeconds);
-  movesElement.textContent = state.moves.toString();
+  timeElement.textContent = formatTime(state.remainingSeconds);
+  movesElement.textContent = `${state.round} / M${state.moves}`;
   lightsElement.textContent = countLightsOn(state.board).toString();
-  scoreElement.textContent = getCurrentScore().toString();
+  scoreElement.textContent = state.score.toString();
   bestElement.textContent = loadBestScore(difficultyId)?.toString() ?? '--';
   selectedElement.textContent = `R${getRow(selectedIndex, state.difficulty.size) + 1} C${getColumn(
     selectedIndex,
     state.difficulty.size,
   ) + 1}`;
+  helpText.textContent = getHelpText();
 }
 
 function renderBoard(): void {
@@ -366,16 +385,16 @@ function renderOverlay(): void {
     overlayAction.textContent = 'Resume';
   }
 
-  if (phase === 'won') {
-    overlayKicker.textContent = 'CLEAR';
-    overlayTitle.textContent = `${state.moves} moves / ${getCurrentScore()}점`;
-    overlayAction.textContent = 'New Game';
+  if (phase === 'failed') {
+    overlayKicker.textContent = 'TIME OUT';
+    overlayTitle.textContent = `${state.score}점 기록`;
+    overlayAction.textContent = 'New Run';
   }
 
   if (phase === 'stopped') {
     overlayKicker.textContent = 'STOPPED';
-    overlayTitle.textContent = '게임 종료';
-    overlayAction.textContent = 'New Game';
+    overlayTitle.textContent = `${state.score}점 기록`;
+    overlayAction.textContent = 'New Run';
   }
 }
 
@@ -401,12 +420,34 @@ function getDirectionFromKey(key: string): 'up' | 'down' | 'left' | 'right' | nu
   return null;
 }
 
-function getCurrentScore(): number {
-  return calculateScore({
+function getHelpText(): string {
+  if (phase === 'paused') {
+    return '일시정지 중입니다.';
+  }
+
+  if (phase === 'failed') {
+    return '시간초과로 실패했습니다. New Run으로 다시 시작하세요.';
+  }
+
+  if (phase === 'stopped') {
+    return '허브 명령으로 게임이 종료되었습니다.';
+  }
+
+  const roundBonus = calculateRoundScore({
     difficultyId,
-    elapsedSeconds: state.elapsedSeconds,
+    round: state.round,
+    remainingSeconds: state.remainingSeconds,
     moves: state.moves,
   });
+
+  return `${statusText} 현재 라운드 보너스 ${roundBonus.toLocaleString('ko-KR')}점. 최근 획득 ${lastRoundGain.toLocaleString('ko-KR')}점.`;
+}
+
+function finishRun(): void {
+  stopTimer();
+  saveBestScore(difficultyId, state.score);
+  notifyScore(state.score);
+  notifyGameOver(state.score);
 }
 
 function loadBestScore(nextDifficultyId: DifficultyId): number | null {

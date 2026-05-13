@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  advanceRound,
   applyMoves,
-  calculateScore,
+  calculateRoundScore,
   countLightsOn,
   createPuzzleState,
   createSolvedBoard,
   getDifficulty,
+  getRoundTimeSeconds,
   getToggleIndexes,
   isSolved,
+  isTimedOut,
+  recordFailure,
   tickTimer,
   toggleAt,
   type LightBoard,
@@ -64,6 +68,9 @@ describe('Lights Out engine', () => {
       expect(state.board).toHaveLength(state.difficulty.size * state.difficulty.size);
       expect(countLightsOn(state.board)).toBeGreaterThan(0);
       expect(isSolved(solved)).toBe(true);
+      expect(state.round).toBe(1);
+      expect(state.score).toBe(0);
+      expect(state.remainingSeconds).toBe(state.difficulty.roundTimeSeconds);
     }
   });
 
@@ -72,19 +79,40 @@ describe('Lights Out engine', () => {
     expect(getDifficulty('normal').size).toBeLessThan(getDifficulty('hard').size);
   });
 
-  it('ticks elapsed time without mutating the original state', () => {
+  it('ticks elapsed time down from the round timer without mutating the original state', () => {
     const state = createPuzzleState('easy', seededRandom(9));
     const next = tickTimer(state, 8);
 
     expect(state.elapsedSeconds).toBe(0);
     expect(next.elapsedSeconds).toBe(8);
+    expect(next.remainingSeconds).toBe(state.roundTimeSeconds - 8);
   });
 
-  it('scores harder clears higher before penalties', () => {
-    const easyScore = calculateScore({ difficultyId: 'easy', elapsedSeconds: 45, moves: 10 });
-    const hardScore = calculateScore({ difficultyId: 'hard', elapsedSeconds: 45, moves: 10 });
+  it('scores harder round clears higher before move penalties', () => {
+    const easyScore = calculateRoundScore({ difficultyId: 'easy', round: 1, remainingSeconds: 60, moves: 10 });
+    const hardScore = calculateRoundScore({ difficultyId: 'hard', round: 1, remainingSeconds: 60, moves: 10 });
 
     expect(hardScore).toBeGreaterThan(easyScore);
+  });
+
+  it('advances to a new map while preserving cumulative score', () => {
+    const state = createPuzzleState('easy', seededRandom(11));
+    const next = advanceRound({ ...state, board: createSolvedBoard(state.difficulty.size), moves: 5 }, seededRandom(12));
+
+    expect(next.round).toBe(2);
+    expect(next.score).toBeGreaterThan(0);
+    expect(next.moves).toBe(0);
+    expect(next.remainingSeconds).toBe(getRoundTimeSeconds(next.difficulty, 2));
+    expect(next.board).not.toEqual(state.board);
+  });
+
+  it('records a failed run when the timer reaches zero', () => {
+    const timedOutState = tickTimer(createPuzzleState('hard', seededRandom(13)), 999);
+    const failedState = recordFailure(timedOutState);
+
+    expect(isTimedOut(timedOutState)).toBe(true);
+    expect(failedState.failures).toBe(1);
+    expect(failedState.remainingSeconds).toBe(0);
   });
 
   it('keeps invalid toggles as the same board reference', () => {
