@@ -57,6 +57,7 @@ corepack pnpm run dev
 - [Sudoku](games/sudoku/README.md)
 - [Sliding Puzzle](games/sliding-puzzle/README.md)
 - [Lights Out](games/lights-out/README.md)
+- [Tower of Hanoi](games/tower-of-hanoi/README.md)
 - [Snake](games/snake/README.md)
 - [Simon Says](games/simon-says/README.md)
 - [Perfect Stop](games/perfect-stop/README.md)

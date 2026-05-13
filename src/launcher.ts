@@ -106,6 +106,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'tower-of-hanoi',
+    title: 'Tower of Hanoi',
+    genre: 'Logic Puzzle',
+    description: '작은 원반 위에 큰 원반을 놓지 않으며 모든 원반을 옮기는 고전 퍼즐',
+    controls: ['Click', 'Arrow Keys', 'Space', 'N'],
+    accent: '#c084fc',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
