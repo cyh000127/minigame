@@ -79,6 +79,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'sudoku',
+    title: 'Sudoku',
+    genre: 'Logic Puzzle',
+    description: 'Easy, Normal, Hard 난이도에서 유일해 스도쿠 퍼즐을 푸는 숫자 논리 게임',
+    controls: ['Click', 'Number Keys', 'Arrow Keys', 'H'],
+    accent: '#a7f3d0',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
