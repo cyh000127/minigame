@@ -4,15 +4,19 @@ import {
   NORTH,
   SOUTH,
   WEST,
-  calculateScore,
+  advanceRound,
+  calculateRoundScore,
   countActiveCells,
   createCellKey,
   createInitialState,
   createSeededRandom,
   createSolutionBoard,
   formatTime,
+  getRoundTimeSeconds,
   getPoweredKeys,
   isSolved,
+  isTimedOut,
+  recordFailure,
   rotateCell,
   rotateMask,
   tickTimer,
@@ -35,6 +39,9 @@ describe('Circuit Connect rules', () => {
     expect(first.board).toEqual(second.board);
     expect(first.seed).toBe(135);
     expect(first.difficulty.size).toBe(5);
+    expect(first.round).toBe(1);
+    expect(first.score).toBe(0);
+    expect(first.remainingSeconds).toBe(first.difficulty.roundTimeSeconds);
   });
 
   it('generates a solvable puzzle by keeping a solution mask for every active cell', () => {
@@ -97,12 +104,45 @@ describe('Circuit Connect rules', () => {
     ]));
   });
 
-  it('penalizes time and moves while formatting elapsed time', () => {
-    const state = tickTimer(createInitialState('normal', 333), 75);
+  it('counts down time while tracking elapsed time', () => {
+    const state = tickTimer(createInitialState('normal', 333), 10);
 
-    expect(state.elapsedSeconds).toBe(75);
-    expect(formatTime(state.elapsedSeconds)).toBe('1:15');
-    expect(calculateScore({ difficultyId: 'normal', moves: 10, elapsedSeconds: 20 })).toBe(8190);
+    expect(state.elapsedSeconds).toBe(10);
+    expect(state.remainingSeconds).toBe(state.roundTimeSeconds - 10);
+    expect(formatTime(state.remainingSeconds)).toBe('0:52');
+  });
+
+  it('scores cleared rounds from remaining time, active cells and moves', () => {
+    const state = createInitialState('normal', 333);
+    const score = calculateRoundScore({
+      difficultyId: 'normal',
+      round: state.round,
+      moves: 10,
+      remainingSeconds: 20,
+      activeCells: countActiveCells(state.board),
+    });
+
+    expect(score).toBeGreaterThan(8500);
+  });
+
+  it('advances to a fresh timed board after a clear', () => {
+    const state = createInitialState('easy', 123);
+    const nextState = advanceRound({ ...state, board: createSolutionBoard(state.board), moves: 8, remainingSeconds: 20 }, 456);
+
+    expect(nextState.round).toBe(2);
+    expect(nextState.score).toBeGreaterThan(0);
+    expect(nextState.moves).toBe(0);
+    expect(nextState.remainingSeconds).toBe(getRoundTimeSeconds(nextState.difficulty, 2));
+    expect(nextState.board).not.toEqual(state.board);
+  });
+
+  it('records a failed run when the round timer reaches zero', () => {
+    const timedOutState = tickTimer(createInitialState('hard', 987), 999);
+    const failedState = recordFailure(timedOutState);
+
+    expect(isTimedOut(timedOutState)).toBe(true);
+    expect(failedState.failures).toBe(1);
+    expect(failedState.remainingSeconds).toBe(0);
   });
 
   it('returns stable pseudo-random values between zero and one', () => {

@@ -7,8 +7,10 @@ export interface DifficultyConfig {
   readonly size: number;
   readonly branchSteps: number;
   readonly scoreBase: number;
-  readonly timePenalty: number;
+  readonly timeBonus: number;
   readonly movePenalty: number;
+  readonly roundTimeSeconds: number;
+  readonly minRoundTimeSeconds: number;
 }
 
 export interface CircuitCell {
@@ -25,15 +27,22 @@ export type CircuitBoard = readonly (readonly CircuitCell[])[];
 export interface CircuitState {
   readonly difficulty: DifficultyConfig;
   readonly board: CircuitBoard;
+  readonly round: number;
+  readonly score: number;
+  readonly failures: number;
   readonly moves: number;
   readonly elapsedSeconds: number;
+  readonly remainingSeconds: number;
+  readonly roundTimeSeconds: number;
   readonly seed: number;
 }
 
-export interface ScoreInput {
+export interface RoundScoreInput {
   readonly difficultyId: DifficultyId;
+  readonly round: number;
   readonly moves: number;
-  readonly elapsedSeconds: number;
+  readonly remainingSeconds: number;
+  readonly activeCells: number;
 }
 
 interface Position {
@@ -68,8 +77,10 @@ export const DIFFICULTIES: readonly DifficultyConfig[] = [
     size: 4,
     branchSteps: 4,
     scoreBase: 5000,
-    timePenalty: 6,
+    timeBonus: 18,
     movePenalty: 12,
+    roundTimeSeconds: 70,
+    minRoundTimeSeconds: 38,
   },
   {
     id: 'normal',
@@ -77,8 +88,10 @@ export const DIFFICULTIES: readonly DifficultyConfig[] = [
     size: 5,
     branchSteps: 8,
     scoreBase: 8500,
-    timePenalty: 8,
+    timeBonus: 22,
     movePenalty: 15,
+    roundTimeSeconds: 62,
+    minRoundTimeSeconds: 32,
   },
   {
     id: 'hard',
@@ -86,16 +99,26 @@ export const DIFFICULTIES: readonly DifficultyConfig[] = [
     size: 6,
     branchSteps: 14,
     scoreBase: 13000,
-    timePenalty: 10,
+    timeBonus: 26,
     movePenalty: 18,
+    roundTimeSeconds: 54,
+    minRoundTimeSeconds: 28,
   },
 ] as const;
 
-export function createInitialState(difficultyId: DifficultyId = 'normal', seed = Date.now()): CircuitState {
+export function createInitialState(
+  difficultyId: DifficultyId = 'normal',
+  seed = Date.now(),
+  round = 1,
+  score = 0,
+  failures = 0,
+): CircuitState {
   const difficulty = getDifficulty(difficultyId);
   const random = createSeededRandom(seed);
   const solutionMasks = createSolutionMasks(difficulty.size, difficulty.branchSteps, random);
   let board = createScrambledBoard(solutionMasks, random);
+  const safeRound = Math.max(1, Math.floor(round));
+  const roundTimeSeconds = getRoundTimeSeconds(difficulty, safeRound);
 
   if (isBoardSolved(board)) {
     board = forceUnsolved(board);
@@ -104,8 +127,13 @@ export function createInitialState(difficultyId: DifficultyId = 'normal', seed =
   return {
     difficulty,
     board,
+    round: safeRound,
+    score,
+    failures,
     moves: 0,
     elapsedSeconds: 0,
+    remainingSeconds: roundTimeSeconds,
+    roundTimeSeconds,
     seed,
   };
 }
@@ -165,7 +193,34 @@ export function tickTimer(state: CircuitState, seconds = 1): CircuitState {
 
   return {
     ...state,
+    remainingSeconds: Math.max(0, state.remainingSeconds - seconds),
     elapsedSeconds: state.elapsedSeconds + seconds,
+  };
+}
+
+export function advanceRound(state: CircuitState, seed = state.seed + state.round * 7919): CircuitState {
+  const roundScore = calculateRoundScore({
+    difficultyId: state.difficulty.id,
+    round: state.round,
+    moves: state.moves,
+    remainingSeconds: state.remainingSeconds,
+    activeCells: countActiveCells(state.board),
+  });
+
+  return createInitialState(
+    state.difficulty.id,
+    seed,
+    state.round + 1,
+    state.score + roundScore,
+    state.failures,
+  );
+}
+
+export function recordFailure(state: CircuitState): CircuitState {
+  return {
+    ...state,
+    failures: state.failures + 1,
+    remainingSeconds: 0,
   };
 }
 
@@ -234,6 +289,10 @@ export function isSolved(state: CircuitState): boolean {
   return isBoardSolved(state.board);
 }
 
+export function isTimedOut(state: CircuitState): boolean {
+  return state.remainingSeconds <= 0;
+}
+
 export function isBoardSolved(board: CircuitBoard): boolean {
   const activeCount = countActiveCells(board);
   const poweredKeys = getPoweredKeys(board);
@@ -244,13 +303,21 @@ export function isBoardSolved(board: CircuitBoard): boolean {
     && Boolean(goal && poweredKeys.has(createCellKey(goal.row, goal.col)));
 }
 
-export function calculateScore(input: ScoreInput): number {
+export function calculateRoundScore(input: RoundScoreInput): number {
   const difficulty = getDifficulty(input.difficultyId);
   const rawScore = difficulty.scoreBase
-    - Math.floor(input.elapsedSeconds) * difficulty.timePenalty
+    + input.round * 150
+    + input.activeCells * 35
+    + Math.floor(input.remainingSeconds) * difficulty.timeBonus
     - input.moves * difficulty.movePenalty;
 
   return Math.max(100, rawScore);
+}
+
+export function getRoundTimeSeconds(difficulty: DifficultyConfig, round: number): number {
+  const safeRound = Math.max(1, Math.floor(round));
+
+  return Math.max(difficulty.minRoundTimeSeconds, difficulty.roundTimeSeconds - (safeRound - 1) * 2);
 }
 
 export function formatTime(totalSeconds: number): string {

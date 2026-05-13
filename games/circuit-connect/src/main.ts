@@ -6,20 +6,23 @@ import {
   NORTH,
   SOUTH,
   WEST,
-  calculateScore,
+  advanceRound,
+  calculateRoundScore,
   countActiveCells,
   createCellKey,
   createInitialState,
   formatTime,
   getPoweredKeys,
   isSolved,
+  isTimedOut,
+  recordFailure,
   rotateCell,
   tickTimer,
   type CircuitCell,
   type DifficultyId,
 } from './game';
 
-type Phase = 'ready' | 'playing' | 'paused' | 'won' | 'stopped';
+type Phase = 'ready' | 'playing' | 'paused' | 'failed' | 'stopped';
 type HubCommand = 'start' | 'pause' | 'gameOver';
 
 interface HubMessage {
@@ -44,6 +47,8 @@ let phase: Phase = 'ready';
 let focusedRow = 0;
 let focusedCol = 0;
 let timerId: number | null = null;
+let lastRoundGain = 0;
+let statusMessage = 'Rotate the pipes before time runs out.';
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
@@ -93,6 +98,8 @@ function startGame(difficultyId: DifficultyId = selectedDifficulty): void {
   focusedRow = 0;
   focusedCol = 0;
   phase = 'playing';
+  lastRoundGain = 0;
+  statusMessage = 'Round 1 started. Connect every active pipe before timeout.';
   setTimerRunning(true);
   notifyParent('minigame:start');
   notifyParent('minigame:score', 0);
@@ -131,8 +138,7 @@ function resumeGame(): void {
 
 function stopGame(): void {
   phase = 'stopped';
-  setTimerRunning(false);
-  notifyParent('minigame:game-over', calculateCurrentScore());
+  finishRun();
   render();
 }
 
@@ -173,7 +179,7 @@ function handleAction(action: string): void {
 }
 
 function handleTileRotation(row: number, col: number): void {
-  if (phase === 'won' || phase === 'stopped') {
+  if (phase === 'failed' || phase === 'stopped') {
     startGame();
     return;
   }
@@ -195,7 +201,7 @@ function handleTileRotation(row: number, col: number): void {
   }
 
   if (isSolved(state)) {
-    completeGame();
+    completeRound();
     return;
   }
 
@@ -248,25 +254,39 @@ function handleKeydown(event: KeyboardEvent): void {
   handleTileRotation(focusedRow, focusedCol);
 }
 
-function completeGame(): void {
-  phase = 'won';
-  setTimerRunning(false);
-
-  const score = calculateCurrentScore();
-  const bestScore = Math.max(score, readBestScore(selectedDifficulty));
-
-  window.localStorage.setItem(createBestScoreKey(selectedDifficulty), String(bestScore));
-  notifyParent('minigame:score', score);
-  notifyParent('minigame:game-over', score);
+function completeRound(): void {
+  const completedRound = state.round;
+  const scoreBeforeRound = state.score;
+  state = advanceRound(state, Date.now() + completedRound * 1009);
+  lastRoundGain = state.score - scoreBeforeRound;
+  focusedRow = 0;
+  focusedCol = 0;
+  statusMessage = `Round ${completedRound} clear. +${numberFormat.format(lastRoundGain)} points.`;
+  notifyParent('minigame:score', state.score);
   render();
 }
 
 function calculateCurrentScore(): number {
-  return calculateScore({
+  return state.score;
+}
+
+function calculateCurrentRoundScore(): number {
+  return calculateRoundScore({
     difficultyId: state.difficulty.id,
+    round: state.round,
     moves: state.moves,
-    elapsedSeconds: state.elapsedSeconds,
+    remainingSeconds: state.remainingSeconds,
+    activeCells: countActiveCells(state.board),
   });
+}
+
+function finishRun(): void {
+  setTimerRunning(false);
+
+  const bestScore = Math.max(state.score, readBestScore(selectedDifficulty));
+  window.localStorage.setItem(createBestScoreKey(selectedDifficulty), String(bestScore));
+  notifyParent('minigame:score', state.score);
+  notifyParent('minigame:game-over', state.score);
 }
 
 function setTimerRunning(shouldRun: boolean): void {
@@ -285,7 +305,16 @@ function setTimerRunning(shouldRun: boolean): void {
     }
 
     state = tickTimer(state, 1);
-    notifyParent('minigame:score', calculateCurrentScore());
+
+    if (isTimedOut(state)) {
+      state = recordFailure(state);
+      phase = 'failed';
+      statusMessage = `Time out on round ${state.round}. Final score recorded.`;
+      finishRun();
+      render();
+      return;
+    }
+
     render();
   }, 1000);
 }
@@ -294,7 +323,9 @@ function render(): void {
   const poweredKeys = getPoweredKeys(state.board);
   const activeCount = countActiveCells(state.board);
   const currentScore = calculateCurrentScore();
+  const roundScore = calculateCurrentRoundScore();
   const bestScore = readBestScore(selectedDifficulty);
+  const timerWidth = `${Math.max(0, Math.min(100, (state.remainingSeconds / state.roundTimeSeconds) * 100)).toFixed(1)}%`;
 
   appRoot.innerHTML = `
     <main class="game-shell" data-phase="${phase}">
@@ -306,15 +337,15 @@ function render(): void {
         <section class="hud" aria-label="Game status">
           <div class="hud__item">
             <span>Time</span>
-            <strong>${formatTime(state.elapsedSeconds)}</strong>
+            <strong>${formatTime(state.remainingSeconds)}</strong>
           </div>
           <div class="hud__item">
-            <span>Moves</span>
-            <strong>${state.moves}</strong>
+            <span>Round</span>
+            <strong>${state.round}</strong>
           </div>
           <div class="hud__item">
-            <span>Powered</span>
-            <strong>${poweredKeys.size}/${activeCount}</strong>
+            <span>Score</span>
+            <strong>${numberFormat.format(currentScore)}</strong>
           </div>
           <div class="hud__item">
             <span>Best</span>
@@ -340,6 +371,10 @@ function render(): void {
             </div>
           </div>
 
+          <div class="timer-track" aria-label="Round time remaining">
+            <div class="timer-fill" style="--timer-width: ${timerWidth};"></div>
+          </div>
+
           <div class="circuit-board" style="--board-size: ${state.difficulty.size};" role="group" aria-label="Circuit board">
             ${state.board.flatMap((row) => row.map((cell) => renderTile(cell, poweredKeys))).join('')}
           </div>
@@ -349,19 +384,24 @@ function render(): void {
             <span>Keyboard: Arrows / Space / N / P</span>
           </div>
 
-          <div class="won-banner" ${phase === 'won' ? '' : 'hidden'}>
+          <div class="won-banner" ${phase === 'failed' || phase === 'stopped' ? '' : 'hidden'}>
             <div>
-              <span>CIRCUIT ONLINE</span>
+              <span>${phase === 'failed' ? 'RUN FAILED' : 'RUN STOPPED'}</span>
               <strong>${numberFormat.format(currentScore)}</strong>
-              <button class="action-button action-button--primary" data-action="new" type="button">New Grid</button>
+              <button class="action-button action-button--primary" data-action="new" type="button">New Run</button>
             </div>
           </div>
         </section>
 
         <aside class="side-panel" aria-label="Controls and score">
           <div class="score-card">
-            <span>Score</span>
-            <strong>${numberFormat.format(currentScore)}</strong>
+            <span>Round Bonus</span>
+            <strong>${numberFormat.format(roundScore)}</strong>
+          </div>
+
+          <div class="score-card score-card--compact">
+            <span>Powered / Moves / Fail</span>
+            <strong>${poweredKeys.size}/${activeCount} / ${state.moves} / ${state.failures}</strong>
           </div>
 
           <div class="action-grid">
@@ -375,7 +415,8 @@ function render(): void {
               <li>Rotate active tiles until every wire is powered.</li>
               <li>Power starts at the top-left source.</li>
               <li>The bottom-right battery must be connected.</li>
-              <li>Score loses points by time and rotations.</li>
+              <li>Clear a grid before timeout to earn score and load the next grid.</li>
+              <li>Timeout records the final score and ends the run.</li>
             </ul>
           </div>
         </aside>
@@ -432,12 +473,12 @@ function createTileLabel(cell: CircuitCell): string {
 }
 
 function getStatusText(): string {
-  if (phase === 'won') {
-    return 'All active wires are powered.';
-  }
-
   if (phase === 'paused') {
     return 'Paused. Resume when ready.';
+  }
+
+  if (phase === 'failed') {
+    return 'Time out. Final score has been recorded.';
   }
 
   if (phase === 'stopped') {
@@ -445,10 +486,10 @@ function getStatusText(): string {
   }
 
   if (phase === 'ready') {
-    return 'Rotate the wires to connect power to the battery.';
+    return 'Rotate the pipes to connect power before the timer ends.';
   }
 
-  return 'Keep rotating tiles until the whole circuit lights up.';
+  return statusMessage;
 }
 
 function getInstructionText(): string {
@@ -458,7 +499,11 @@ function getInstructionText(): string {
     return 'Move focus to an active tile.';
   }
 
-  return `Focused tile ${focusedRow + 1}, ${focusedCol + 1}. Rotate it to align the wire.`;
+  if (phase === 'failed' || phase === 'stopped') {
+    return 'Press New to start a fresh timed run.';
+  }
+
+  return `Focused tile ${focusedRow + 1}, ${focusedCol + 1}. Rotate it before the timer reaches zero.`;
 }
 
 function readBestScore(difficultyId: DifficultyId): number {

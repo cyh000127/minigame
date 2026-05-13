@@ -108,7 +108,7 @@ h1 {
 .board-panel {
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   overflow: hidden;
   padding: clamp(12px, 2vw, 22px);
 }
@@ -155,6 +155,23 @@ h1 {
   border-color: rgba(45, 212, 191, 0.75);
   background: #0f766e;
   color: #ffffff;
+}
+
+.timer-track {
+  height: 16px;
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(248, 250, 252, 0.14);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.44);
+}
+
+.timer-fill {
+  width: var(--timer-width);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
+  transition: width 0.18s linear;
 }
 
 .circuit-board {
@@ -282,7 +299,7 @@ h1 {
 
 .side-panel {
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
   gap: 12px;
   padding: 14px;
 }
@@ -308,6 +325,10 @@ h1 {
   color: #ffffff;
   font-size: clamp(1.75rem, 4.8vw, 2.7rem);
   line-height: 1;
+}
+
+.score-card--compact strong {
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
 }
 
 .action-grid {
