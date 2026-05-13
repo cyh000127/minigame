@@ -200,7 +200,6 @@ button:focus-visible {
   color: #06100c;
 }
 
-.cell.is-wrong,
 .cell.is-conflict {
   background: #ff7598;
   color: #23060e;

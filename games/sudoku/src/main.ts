@@ -77,9 +77,9 @@ appRoot.innerHTML = `
         <div class="number-pad" data-number-pad>
           ${Array.from({ length: 9 }, (_, index) => `<button data-number="${index + 1}" type="button">${index + 1}</button>`).join('')}
           <button data-action="erase" type="button">Erase</button>
-          <button data-action="hint" type="button">Hint</button>
+          <button data-action="submit" type="button">Submit</button>
         </div>
-        <p class="help-text">클릭으로 칸을 고르고 숫자키 1-9로 입력합니다. 방향키 이동, Backspace 삭제, H 힌트.</p>
+        <p class="help-text" data-help-text>입력 중에는 정답 여부를 표시하지 않습니다. 모두 채운 뒤 Submit으로 제출합니다.</p>
       </aside>
 
       <div class="overlay" data-overlay hidden>
@@ -98,6 +98,7 @@ const timeElement = mustQuery<HTMLElement>('[data-time]');
 const mistakesElement = mustQuery<HTMLElement>('[data-mistakes]');
 const bestElement = mustQuery<HTMLElement>('[data-best]');
 const selectedLabel = mustQuery<HTMLElement>('[data-selected-label]');
+const helpText = mustQuery<HTMLElement>('[data-help-text]');
 const newGameButton = mustQuery<HTMLButtonElement>('[data-new-game]');
 const numberPad = mustQuery<HTMLElement>('[data-number-pad]');
 const overlay = mustQuery<HTMLElement>('[data-overlay]');
@@ -112,7 +113,7 @@ let selectedIndex = findFirstEditableIndex(puzzle);
 let phase: GamePhase = 'playing';
 let elapsedSeconds = 0;
 let mistakes = 0;
-let hints = 0;
+let feedbackText = '입력 중에는 정답 여부를 표시하지 않습니다. 모두 채운 뒤 Submit으로 제출합니다.';
 let timerId = 0;
 
 newGameButton.addEventListener('click', () => startNewGame(difficultyId));
@@ -160,8 +161,8 @@ numberPad.addEventListener('click', (event) => {
     eraseValue();
   }
 
-  if (button.dataset.action === 'hint') {
-    useHint();
+  if (button.dataset.action === 'submit') {
+    submitPuzzle();
   }
 });
 
@@ -182,9 +183,9 @@ window.addEventListener('keydown', (event) => {
     return;
   }
 
-  if (event.key.toLowerCase() === 'h') {
+  if (event.key === 'Enter') {
     event.preventDefault();
-    useHint();
+    submitPuzzle();
     return;
   }
 
@@ -229,7 +230,7 @@ function startNewGame(nextDifficultyId: DifficultyId): void {
   phase = 'playing';
   elapsedSeconds = 0;
   mistakes = 0;
-  hints = 0;
+  feedbackText = '입력 중에는 정답 여부를 표시하지 않습니다. 모두 채운 뒤 Submit으로 제출합니다.';
   startTimer();
   render();
 }
@@ -246,17 +247,9 @@ function enterValue(value: number): void {
   }
 
   values[selectedIndex] = value;
+  feedbackText = '입력했습니다. Submit 전까지 정답 여부는 표시하지 않습니다.';
 
-  if (value !== puzzle.solution[selectedIndex]) {
-    mistakes += 1;
-  }
-
-  if (isSolvedBoard(values, puzzle.solution)) {
-    completeGame();
-    return;
-  }
-
-  notifyScore(calculateScore({ difficultyId, elapsedSeconds, mistakes, hints }));
+  notifyScore(calculateScore({ difficultyId, elapsedSeconds, mistakes, hints: 0 }));
   render();
 }
 
@@ -266,48 +259,32 @@ function eraseValue(): void {
   }
 
   values[selectedIndex] = EMPTY;
+  feedbackText = '칸을 비웠습니다. 중복 표시만 참고하고, 정답 여부는 제출 후 확인합니다.';
   render();
 }
 
-function useHint(): void {
+function submitPuzzle(): void {
   if (phase !== 'playing') {
     return;
   }
-
-  const hintIndex = getHintIndex();
-
-  if (hintIndex === null) {
-    return;
-  }
-
-  values[hintIndex] = puzzle.solution[hintIndex] ?? EMPTY;
-  selectedIndex = hintIndex;
-  hints += 1;
 
   if (isSolvedBoard(values, puzzle.solution)) {
     completeGame();
     return;
   }
 
+  mistakes += 1;
+  feedbackText = values.includes(EMPTY)
+    ? '아직 빈칸이 있습니다. 정답 위치는 공개하지 않습니다.'
+    : '아직 정답이 아닙니다. 중복과 빠진 숫자를 다시 확인하세요.';
+  notifyScore(calculateScore({ difficultyId, elapsedSeconds, mistakes, hints: 0 }));
   render();
-}
-
-function getHintIndex(): number | null {
-  if (
-    selectedIndex !== null &&
-    !puzzle.givenIndexes.has(selectedIndex) &&
-    values[selectedIndex] !== puzzle.solution[selectedIndex]
-  ) {
-    return selectedIndex;
-  }
-
-  return values.findIndex((value, index) => !puzzle.givenIndexes.has(index) && value !== puzzle.solution[index]);
 }
 
 function completeGame(): void {
   phase = 'won';
   stopTimer();
-  const score = calculateScore({ difficultyId, elapsedSeconds, mistakes, hints });
+  const score = calculateScore({ difficultyId, elapsedSeconds, mistakes, hints: 0 });
   saveBestScore(difficultyId, score);
   notifyGameOver(score);
   render();
@@ -401,16 +378,17 @@ function render(): void {
 }
 
 function renderHud(): void {
-  const score = calculateScore({ difficultyId, elapsedSeconds, mistakes, hints });
+  const score = calculateScore({ difficultyId, elapsedSeconds, mistakes, hints: 0 });
 
   levelElement.textContent = puzzle.difficulty.label;
   timeElement.textContent = formatTime(elapsedSeconds);
-  mistakesElement.textContent = `${mistakes} / H${hints}`;
+  mistakesElement.textContent = mistakes.toString();
   bestElement.textContent = formatBestScore(loadBestScore(difficultyId), score);
   selectedLabel.textContent =
     selectedIndex === null
       ? '--'
       : `R${Math.floor(selectedIndex / BOARD_SIZE) + 1} C${(selectedIndex % BOARD_SIZE) + 1}`;
+  helpText.textContent = feedbackText;
 }
 
 function renderBoard(): void {
@@ -422,7 +400,6 @@ function renderBoard(): void {
     const classes = ['cell'];
     const isGiven = puzzle.givenIndexes.has(index);
     const isSelected = selectedIndex === index;
-    const isWrong = !isGiven && value !== EMPTY && value !== puzzle.solution[index];
 
     if (isGiven) {
       classes.push('cell--given');
@@ -442,10 +419,6 @@ function renderBoard(): void {
 
     if (conflictIndexes.has(index)) {
       classes.push('is-conflict');
-    }
-
-    if (isWrong) {
-      classes.push('is-wrong');
     }
 
     if (index % 3 === 0) {
@@ -490,7 +463,7 @@ function renderOverlay(): void {
       difficultyId,
       elapsedSeconds,
       mistakes,
-      hints,
+      hints: 0,
     })}점`;
     overlayAction.textContent = 'New Game';
   }
