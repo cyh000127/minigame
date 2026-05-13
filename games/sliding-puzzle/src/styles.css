@@ -1,0 +1,278 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #09111c;
+  color: #f8fbff;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(90deg, rgb(125 211 252 / 0.14), transparent 32%, rgb(250 204 21 / 0.12)),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.045) 0 1px, transparent 1px 32px),
+    #09111c;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid #f8fbff;
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.shell {
+  display: grid;
+  width: min(100%, 1120px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 12px;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.topbar,
+.hud,
+.difficulty-panel,
+.board,
+.control-panel {
+  border: 2px solid rgb(248 251 255 / 0.72);
+  border-radius: 8px;
+  background: rgb(9 17 28 / 0.88);
+  box-shadow: 0 16px 44px rgb(0 0 0 / 0.25);
+}
+
+.topbar {
+  display: flex;
+  min-height: 70px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.topbar p,
+.hud span,
+.difficulty-panel button,
+.score-panel span,
+.help-text,
+.overlay p {
+  margin: 0;
+  color: #7dd3fc;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.9rem);
+  line-height: 0.95;
+}
+
+.new-button,
+.difficulty-panel button,
+.arrow-pad button,
+.overlay button {
+  min-height: 40px;
+  border: 2px solid rgb(248 251 255 / 0.5);
+  border-radius: 8px;
+  background: rgb(10 23 38 / 0.94);
+  color: #f8fbff;
+  font-weight: 900;
+}
+
+.new-button {
+  padding: 0 14px;
+  background: linear-gradient(135deg, #7dd3fc, #facc15);
+  color: #06111c;
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+}
+
+.hud div,
+.score-panel {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  border: 1px solid rgb(248 251 255 / 0.18);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgb(255 255 255 / 0.055);
+}
+
+.hud strong,
+.score-panel strong {
+  overflow: hidden;
+  color: #facc15;
+  font-size: 1.05rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.difficulty-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+}
+
+.difficulty-panel button.is-selected,
+.arrow-pad button:hover,
+.overlay button {
+  border-color: #facc15;
+  color: #facc15;
+}
+
+.game-area {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
+  gap: 12px;
+  align-items: start;
+}
+
+.board {
+  --size: 3;
+  display: grid;
+  width: min(100%, 72vh, 650px);
+  aspect-ratio: 1;
+  justify-self: center;
+  grid-template-columns: repeat(var(--size), minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  background:
+    linear-gradient(135deg, rgb(125 211 252 / 0.18), rgb(250 204 21 / 0.12)),
+    rgb(6 11 20 / 0.96);
+}
+
+.tile {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  border: 2px solid rgb(248 251 255 / 0.56);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgb(125 211 252 / 0.9), rgb(250 204 21 / 0.88));
+  color: #07111c;
+  font-size: clamp(1.4rem, 7vmin, 4.4rem);
+  font-weight: 1000;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    filter 120ms ease;
+}
+
+.tile:hover {
+  border-color: #f8fbff;
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.tile--empty {
+  border-style: dashed;
+  background: rgb(248 251 255 / 0.07);
+  box-shadow: inset 0 0 0 1px rgb(248 251 255 / 0.1);
+  cursor: default;
+}
+
+.control-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.arrow-pad {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.arrow-pad button {
+  min-height: 54px;
+}
+
+.help-text {
+  color: rgb(248 251 255 / 0.68);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  border: 2px solid rgb(248 251 255 / 0.72);
+  border-radius: 8px;
+  background: rgb(9 17 28 / 0.9);
+  text-align: center;
+}
+
+.overlay h2 {
+  margin: 0;
+  padding: 0 16px;
+  font-size: clamp(2rem, 7vw, 4.6rem);
+  line-height: 0.95;
+}
+
+.overlay button {
+  padding: 0 18px;
+}
+
+@media (max-width: 820px) {
+  .shell {
+    overflow: auto;
+  }
+
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-area {
+    grid-template-columns: 1fr;
+  }
+
+  .board {
+    width: min(100%, 76vh);
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    padding: 8px;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hud,
+  .difficulty-panel {
+    grid-template-columns: 1fr;
+  }
+}

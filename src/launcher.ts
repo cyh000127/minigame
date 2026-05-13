@@ -88,6 +88,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'sliding-puzzle',
+    title: 'Sliding Puzzle',
+    genre: 'Logic Puzzle',
+    description: '빈 칸을 움직여 숫자 타일을 순서대로 맞추는 solvable 슬라이딩 퍼즐',
+    controls: ['Click', 'Arrow Keys', 'WASD', 'N'],
+    accent: '#7dd3fc',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
