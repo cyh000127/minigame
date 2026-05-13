@@ -124,6 +124,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'math-rush',
+    title: 'Math Rush',
+    genre: 'Arithmetic Reflex',
+    description: '수식의 정답을 네 방향키 중 하나로 빠르게 고르는 산술 반응 게임',
+    controls: ['Arrow Keys', 'Click', 'Space', 'N'],
+    accent: '#38bdf8',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
