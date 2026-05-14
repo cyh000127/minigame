@@ -60,6 +60,7 @@ corepack pnpm run dev
 - [Tower of Hanoi](games/tower-of-hanoi/README.md)
 - [Circuit Connect](games/circuit-connect/README.md)
 - [Math Rush](games/math-rush/README.md)
+- [Maze Sweep](games/maze-sweep/README.md)
 - [Snake](games/snake/README.md)
 - [Simon Says](games/simon-says/README.md)
 - [Perfect Stop](games/perfect-stop/README.md)

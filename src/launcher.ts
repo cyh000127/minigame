@@ -133,6 +133,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'maze-sweep',
+    title: 'Maze Sweep',
+    genre: 'Grid Escape',
+    description: '랜덤 미로에서 오브를 모아 출구로 탈출하는 스테이지형 격자 게임',
+    controls: ['Arrow Keys', 'N', 'P'],
+    accent: '#f97316',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
