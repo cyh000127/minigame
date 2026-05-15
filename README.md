@@ -61,6 +61,7 @@ corepack pnpm run dev
 - [Circuit Connect](games/circuit-connect/README.md)
 - [Math Rush](games/math-rush/README.md)
 - [Maze Sweep](games/maze-sweep/README.md)
+- [Signal Decoder](games/signal-decoder/README.md)
 - [Snake](games/snake/README.md)
 - [Simon Says](games/simon-says/README.md)
 - [Perfect Stop](games/perfect-stop/README.md)

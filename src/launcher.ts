@@ -142,6 +142,15 @@ export const GAMES: readonly GameEntry[] = [
     status: 'playable',
   },
   {
+    slug: 'signal-decoder',
+    title: 'Signal Decoder',
+    genre: 'Reaction Sequence',
+    description: '방향 신호 시퀀스를 순서대로 해독하는 스테이지형 반응 게임',
+    controls: ['Arrow Keys', 'Click', 'N', 'P'],
+    accent: '#22d3ee',
+    status: 'playable',
+  },
+  {
     slug: 'snake',
     title: 'Snake',
     genre: 'Arcade Survival',
