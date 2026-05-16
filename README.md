@@ -71,3 +71,4 @@ corepack pnpm run dev
 - [Memory Flip](games/memory-flip/README.md)
 - [Laser Grid](games/laser-grid/README.md)
 - [Odd One Out](games/odd-one-out/README.md)
+- [Safe Cracker](games/safe-cracker/README.md)

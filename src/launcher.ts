@@ -231,6 +231,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#22d3ee',
     status: 'playable',
   },
+  {
+    slug: 'safe-cracker',
+    title: 'Safe Cracker',
+    genre: 'Code Memory',
+    description: '잠깐 공개되는 숫자 코드를 기억해 입력하는 스테이지형 기억 퍼즐',
+    controls: ['0-9', 'Enter', 'Backspace', 'Click', 'Touch'],
+    accent: '#facc15',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
