@@ -70,3 +70,4 @@ corepack pnpm run dev
 - [Pong Duel](games/pong-duel/README.md)
 - [Memory Flip](games/memory-flip/README.md)
 - [Laser Grid](games/laser-grid/README.md)
+- [Odd One Out](games/odd-one-out/README.md)

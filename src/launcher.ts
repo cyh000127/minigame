@@ -222,6 +222,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#38bdf8',
     status: 'playable',
   },
+  {
+    slug: 'odd-one-out',
+    title: 'Odd One Out',
+    genre: 'Visual Reflex',
+    description: '미묘하게 다른 색 타일 하나를 빠르게 찾아내는 스테이지형 반응 퍼즐',
+    controls: ['Click', 'Touch', 'Start', 'Pause', 'Reset'],
+    accent: '#22d3ee',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
