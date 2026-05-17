@@ -300,7 +300,7 @@ function render(): void {
       (laser) => laser.phase === 'active' && isLaserOnPosition(laser, position),
     );
 
-    button.textContent = getCellText(isPlayer, hasActive, hasWarning);
+    button.innerHTML = getCellMarkup(isPlayer, hasActive, hasWarning);
     button.disabled = state.phase !== 'playing';
     button.classList.toggle('is-player', isPlayer);
     button.classList.toggle('is-warning', hasWarning);
@@ -309,17 +309,35 @@ function render(): void {
   });
 }
 
-function getCellText(isPlayer: boolean, hasActive: boolean, hasWarning: boolean): string {
+function getCellMarkup(isPlayer: boolean, hasActive: boolean, hasWarning: boolean): string {
+  if (isPlayer && hasActive) {
+    return `
+      <span class="cell__stack">
+        <span class="cell__label">CORE</span>
+        <span class="cell__badge cell__badge--danger">FIRE</span>
+      </span>
+    `;
+  }
+
+  if (isPlayer && hasWarning) {
+    return `
+      <span class="cell__stack">
+        <span class="cell__label">CORE</span>
+        <span class="cell__badge cell__badge--warning">WARN</span>
+      </span>
+    `;
+  }
+
   if (isPlayer) {
-    return 'CORE';
+    return '<span class="cell__label">CORE</span>';
   }
 
   if (hasActive) {
-    return 'FIRE';
+    return '<span class="cell__label">FIRE</span>';
   }
 
   if (hasWarning) {
-    return 'WARN';
+    return '<span class="cell__label">WARN</span>';
   }
 
   return '';

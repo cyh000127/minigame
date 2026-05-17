@@ -125,6 +125,8 @@ button {
 }
 
 .cell {
+  display: grid;
+  place-items: center;
   min-width: 0;
   min-height: 0;
   border: 2px solid rgb(148 163 184 / 0.28);
@@ -140,6 +142,42 @@ button {
     color 90ms ease,
     box-shadow 90ms ease,
     transform 90ms ease;
+}
+
+.cell__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.cell__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cell__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: clamp(0.45rem, 1.1vmin, 0.62rem);
+  font-weight: 1000;
+  line-height: 1.2;
+}
+
+.cell__badge--warning {
+  background: #facc15;
+  color: #422006;
+}
+
+.cell__badge--danger {
+  background: #7f1d1d;
+  color: #ffe4e6;
 }
 
 .cell:disabled {
