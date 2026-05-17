@@ -72,3 +72,4 @@ corepack pnpm run dev
 - [Laser Grid](games/laser-grid/README.md)
 - [Odd One Out](games/odd-one-out/README.md)
 - [Safe Cracker](games/safe-cracker/README.md)
+- [Number Chain](games/number-chain/README.md)

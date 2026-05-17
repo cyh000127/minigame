@@ -240,6 +240,15 @@ export const GAMES: readonly GameEntry[] = [
     accent: '#facc15',
     status: 'playable',
   },
+  {
+    slug: 'number-chain',
+    title: 'Number Chain',
+    genre: 'Path Puzzle',
+    description: '1부터 순서대로 인접한 숫자를 찾아 연결하는 스테이지형 퍼즐',
+    controls: ['Click', 'Touch', 'Start', 'Pause', 'Reset'],
+    accent: '#4ade80',
+    status: 'playable',
+  },
 ] as const;
 
 export const DEFAULT_GAME = getDefaultGame();
