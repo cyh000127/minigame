@@ -253,8 +253,17 @@ export const GAMES: readonly GameEntry[] = [
 
 export const DEFAULT_GAME = getDefaultGame();
 
-export function createGameUrl(slug: string): string {
-  return `/games/${encodeURIComponent(slug)}/index.html`;
+export function createGameUrl(
+  slug: string,
+  baseUrl: string = import.meta.env.BASE_URL,
+): string {
+  const normalizedBase = normalizeBasePath(baseUrl);
+
+  if (normalizedBase === '/') {
+    return `/games/${encodeURIComponent(slug)}/index.html`;
+  }
+
+  return `${normalizedBase}games/${encodeURIComponent(slug)}/index.html`;
 }
 
 export function createLifecycleMessage(
@@ -300,4 +309,13 @@ function getDefaultGame(): GameEntry {
   }
 
   return game;
+}
+
+function normalizeBasePath(baseUrl: string): string {
+  if (!baseUrl) {
+    return '/';
+  }
+
+  const withLeadingSlash = baseUrl.startsWith('/') ? baseUrl : `/${baseUrl}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
 }

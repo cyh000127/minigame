@@ -16,6 +16,7 @@
     "dev:quoridor-server": "pnpm --dir games/quoridor run dev:server"
   },
   "devDependencies": {
+    "@types/node": "^24.12.4",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
     "vitest": "^4.1.2"

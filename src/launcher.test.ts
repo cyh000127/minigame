@@ -19,6 +19,10 @@ describe('launcher registry', () => {
     }
   });
 
+  it('creates pages-compatible URLs when a base path exists', () => {
+    expect(createGameUrl('laser-grid', '/minigame/')).toBe('/minigame/games/laser-grid/index.html');
+  });
+
   it('finds known games and falls back to the first game', () => {
     expect(findGameBySlug('road-racer').title).toBe('Road Racer');
     expect(findGameBySlug('missing-game')).toBe(GAMES[0]);
