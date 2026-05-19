@@ -3,38 +3,35 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #081011;
-  color: #f4fbf9;
+  background: #f7f3eb;
+  color: #5f574f;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(90deg, rgb(92 230 184 / 0.1) 0 1px, transparent 1px 72px),
-    linear-gradient(0deg, rgb(255 210 94 / 0.08) 0 1px, transparent 1px 72px),
-    #081011;
+  background: linear-gradient(180deg, #faf8f2, #efe7da);
   overscroll-behavior: none;
 }
 
 button {
   min-height: 42px;
-  border: 2px solid rgb(244 251 249 / 0.62);
+  border: 1px solid #d7cbbd;
   border-radius: 6px;
   padding: 0 16px;
-  background: #102022;
-  color: #f4fbf9;
+  background: #fffaf3;
+  color: #5f574f;
   font: inherit;
   font-weight: 900;
   cursor: pointer;
 }
 
 button:focus-visible {
-  outline: 3px solid #ffd25e;
+  outline: 3px solid #b9a38a;
   outline-offset: 3px;
 }
 
@@ -69,7 +66,7 @@ button[hidden],
 .topbar p,
 .status-panel span,
 .help-text {
-  color: #5ce6b8;
+  color: #9a8773;
   font-size: 0.78rem;
   font-weight: 900;
 }
@@ -77,6 +74,7 @@ button[hidden],
 .topbar h1 {
   font-size: clamp(2rem, 7vmin, 3.6rem);
   line-height: 1;
+  color: #5f574f;
 }
 
 .status-panel,
@@ -93,13 +91,13 @@ button[hidden],
   display: grid;
   min-height: 52px;
   place-items: center;
-  border: 2px solid rgb(244 251 249 / 0.62);
+  border: 1px solid #d7cbbd;
   border-radius: 8px;
-  background: rgb(16 32 34 / 0.86);
+  background: #fffaf2;
 }
 
 .status-panel strong {
-  color: #ffd25e;
+  color: #7f6f5f;
   font-size: 1.45rem;
   line-height: 1;
 }
@@ -109,8 +107,8 @@ button[hidden],
 }
 
 .difficulty-panel .is-selected {
-  border-color: #5ce6b8;
-  background: #1f4f49;
+  border-color: #b9a38a;
+  background: #efe4d2;
 }
 
 .board-wrap {
@@ -123,17 +121,16 @@ button[hidden],
 .board {
   --columns: 9;
   --rows: 9;
-
   display: grid;
   width: min(100%, 70vh, 680px);
   aspect-ratio: var(--columns) / var(--rows);
   grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
   grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
   gap: clamp(2px, 0.65vmin, 4px);
-  border: 3px solid #5ce6b8;
+  border: 2px solid #cbb9a3;
   border-radius: 10px;
   padding: clamp(5px, 1.1vmin, 8px);
-  background: #102022;
+  background: #d6c4ae;
   touch-action: manipulation;
 }
 
@@ -147,40 +144,38 @@ button[hidden],
   border: 0;
   border-radius: 4px;
   padding: 0;
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent),
-    #2b6c63;
-  color: #102022;
+  background: linear-gradient(180deg, #f6eee3, #d2bea8);
+  color: #5a5047;
   font-size: clamp(0.72rem, 3vmin, 1.45rem);
   line-height: 1;
   user-select: none;
 }
 
 .cell--open {
-  background: #d9efe7;
-  color: #143431;
+  background: #f5f1ea;
+  color: #6a5f54;
 }
 
 .cell--flagged {
-  background: #ffd25e;
-  color: #102022;
+  background: #e8bc72;
+  color: #5a4730;
 }
 
 .cell--mine {
-  background: #ff6262;
-  color: #fff8f3;
+  background: #d77a6f;
+  color: #fff8f2;
 }
 
 .cell[data-number="1"] {
-  color: #2678ff;
+  color: #3f6fb5;
 }
 
 .cell[data-number="2"] {
-  color: #229c62;
+  color: #5b8a52;
 }
 
 .cell[data-number="3"] {
-  color: #df4c4c;
+  color: #b75c53;
 }
 
 .cell[data-number="4"],
@@ -188,7 +183,7 @@ button[hidden],
 .cell[data-number="6"],
 .cell[data-number="7"],
 .cell[data-number="8"] {
-  color: #6e4ef7;
+  color: #7a6a9f;
 }
 
 .overlay {
@@ -198,9 +193,9 @@ button[hidden],
   place-items: center;
   align-content: center;
   gap: 14px;
-  border: 3px solid rgb(244 251 249 / 0.72);
+  border: 2px solid #d7cbbd;
   border-radius: 10px;
-  background: rgb(8 16 17 / 0.86);
+  background: rgb(250 246 239 / 0.92);
   text-align: center;
 }
 
@@ -210,13 +205,14 @@ button[hidden],
 }
 
 .overlay p {
-  color: #5ce6b8;
+  color: #9a8773;
   font-weight: 900;
 }
 
 .overlay h2 {
   font-size: clamp(1.8rem, 7vmin, 3.6rem);
   line-height: 1;
+  color: #5f574f;
 }
 
 .help-text {
