@@ -266,6 +266,19 @@ export function createGameUrl(
   return `${normalizedBase}games/${encodeURIComponent(slug)}/index.html`;
 }
 
+export function createGameCoverUrl(
+  slug: string,
+  baseUrl: string = import.meta.env.BASE_URL,
+): string {
+  const normalizedBase = normalizeBasePath(baseUrl);
+
+  if (normalizedBase === '/') {
+    return `/game-covers/${encodeURIComponent(slug)}.png`;
+  }
+
+  return `${normalizedBase}game-covers/${encodeURIComponent(slug)}.png`;
+}
+
 export function createLifecycleMessage(
   command: MiniGameCommand,
   gameSlug: string,

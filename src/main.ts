@@ -1,5 +1,6 @@
 import './styles.css';
 import {
+  createGameCoverUrl,
   createGameUrl,
   createLifecycleMessage,
   DEFAULT_GAME,
@@ -248,7 +249,11 @@ function renderGameList(): void {
 
     return `
       <button class="game-card library-card" data-game="${game.slug}" type="button" style="--accent: ${game.accent};">
-        <span class="game-card__visual" aria-hidden="true"></span>
+        <span
+          class="game-card__visual"
+          aria-hidden="true"
+          style="background-image: linear-gradient(180deg, rgb(5 8 16 / 0.08), rgb(5 8 16 / 0.78)), url('${createGameCoverUrl(game.slug)}');"
+        ></span>
         <span class="game-card__content">
           <span class="game-card__meta">${game.genre} / ${status}</span>
           <strong>${game.title}</strong>

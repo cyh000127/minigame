@@ -13,10 +13,12 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test": "vitest --run",
+    "capture:covers": "playwright install chromium && node scripts/capture-game-covers.mjs",
     "dev:quoridor-server": "pnpm --dir games/quoridor run dev:server"
   },
   "devDependencies": {
     "@types/node": "^24.12.4",
+    "playwright": "^1.55.1",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
     "vitest": "^4.1.2"

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createGameCoverUrl,
   createGameUrl,
   createLifecycleMessage,
   findGameBySlug,
@@ -21,6 +22,11 @@ describe('launcher registry', () => {
 
   it('creates pages-compatible URLs when a base path exists', () => {
     expect(createGameUrl('laser-grid', '/minigame/')).toBe('/minigame/games/laser-grid/index.html');
+  });
+
+  it('creates cover asset URLs with base path support', () => {
+    expect(createGameCoverUrl('snake')).toBe('/game-covers/snake.png');
+    expect(createGameCoverUrl('snake', '/minigame/')).toBe('/minigame/game-covers/snake.png');
   });
 
   it('finds known games and falls back to the first game', () => {
