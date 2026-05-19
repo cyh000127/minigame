@@ -3,11 +3,11 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #12161b;
-  color: #f8fbff;
+  background: #eef2f7;
+  color: #213047;
 }
 
 body {
@@ -15,8 +15,7 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 28%),
-    linear-gradient(135deg, #1f2937, #0f172a 56%, #111827);
+    linear-gradient(180deg, #f8fbff, #e8eef6 70%, #e2e8f0);
 }
 
 button,
@@ -65,10 +64,10 @@ a:focus-visible {
 .selector,
 .runner,
 .game-host {
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid #cfd8e6;
   border-radius: 8px;
-  background: rgb(15 23 42 / 0.9);
-  box-shadow: 0 18px 55px rgb(0 0 0 / 0.22);
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: 0 12px 30px rgb(40 56 84 / 0.08);
 }
 
 .topbar {
@@ -95,7 +94,7 @@ a:focus-visible {
 .game-card__meta,
 .game-card__record,
 .game-card__cta {
-  color: #bfdbfe;
+  color: #5b6f8d;
   font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0;
@@ -109,6 +108,7 @@ a:focus-visible {
 .topbar h1 {
   font-size: clamp(1.9rem, 4vw, 3.2rem);
   line-height: 0.95;
+  color: #1e2c42;
 }
 
 .topbar__meta {
@@ -119,12 +119,12 @@ a:focus-visible {
 }
 
 .topbar__meta span {
-  border: 1px solid rgb(255 255 255 / 0.18);
+  border: 1px solid #d4dceb;
   border-radius: 8px;
   padding: 6px 10px;
-  color: #e5e7eb;
+  color: #476282;
   font-weight: 900;
-  background: rgb(255 255 255 / 0.06);
+  background: #f7f9fc;
 }
 
 .topbar__meta strong {
@@ -147,7 +147,7 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  border-bottom: 1px solid rgb(248 251 255 / 0.18);
+  border-bottom: 1px solid #dbe3ef;
   padding: 16px;
 }
 
@@ -159,6 +159,7 @@ a:focus-visible {
 .library__title strong {
   font-size: clamp(1.5rem, 4vw, 2.6rem);
   line-height: 1;
+  color: #1e2c42;
 }
 
 .library__stats {
@@ -172,15 +173,15 @@ a:focus-visible {
   display: grid;
   min-width: 0;
   gap: 3px;
-  border: 1px solid rgb(248 251 255 / 0.24);
+  border: 1px solid #d7e0ec;
   border-radius: 8px;
   padding: 10px;
-  background: rgb(8 10 18 / 0.72);
+  background: #f7f9fc;
 }
 
 .library__stats strong {
   overflow: hidden;
-  color: #f8fafc;
+  color: #24344c;
   font-size: 1.15rem;
   line-height: 1;
   text-overflow: ellipsis;
@@ -222,7 +223,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgb(248 251 255 / 0.18);
+  border-bottom: 1px solid #dbe3ef;
   padding-bottom: 12px;
 }
 
@@ -231,9 +232,10 @@ a:focus-visible {
   width: 40px;
   aspect-ratio: 1;
   place-items: center;
-  border: 2px solid rgb(248 251 255 / 0.58);
+  border: 1px solid #cfd8e6;
   border-radius: 999px;
-  color: #ffd25a;
+  color: #4a6487;
+  background: #f7f9fc;
 }
 
 .progress-panel {
@@ -258,7 +260,7 @@ a:focus-visible {
 }
 
 .progress-panel__head strong {
-  color: #ffd25a;
+  color: #2b4260;
   font-size: 0.96rem;
 }
 
@@ -271,9 +273,9 @@ a:focus-visible {
 .progress-stats > span,
 .selected-record,
 .achievement-item {
-  border: 1px solid rgb(248 251 255 / 0.24);
+  border: 1px solid #d7e0ec;
   border-radius: 8px;
-  background: rgb(8 10 18 / 0.72);
+  background: #f8fbff;
 }
 
 .progress-stats > span {
@@ -285,7 +287,7 @@ a:focus-visible {
 
 .progress-stats strong {
   overflow: hidden;
-  color: #f8fbff;
+  color: #24344c;
   font-size: 1.08rem;
   line-height: 1;
   text-overflow: ellipsis;
@@ -300,14 +302,14 @@ a:focus-visible {
 
 .selected-record strong {
   overflow: hidden;
-  color: #ffd25a;
+  color: #2e568d;
   font-size: 1.02rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .selected-record span {
-  color: rgb(248 251 255 / 0.76);
+  color: #61748f;
   font-size: 0.8rem;
   font-weight: 800;
 }
@@ -335,8 +337,8 @@ a:focus-visible {
 }
 
 .achievement-item.is-unlocked {
-  border-color: rgb(88 240 139 / 0.55);
-  background: rgb(88 240 139 / 0.12);
+  border-color: #9bc3ff;
+  background: #edf5ff;
   opacity: 1;
 }
 
@@ -346,8 +348,8 @@ a:focus-visible {
   min-height: 24px;
   place-items: center;
   border-radius: 6px;
-  background: rgb(248 251 255 / 0.1);
-  color: #ffd25a;
+  background: #e9eff7;
+  color: #587092;
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -365,37 +367,37 @@ a:focus-visible {
 }
 
 .achievement-item small {
-  color: rgb(248 251 255 / 0.62);
+  color: #74849b;
   font-size: 0.7rem;
 }
 
 .reset-progress {
   min-height: 34px;
-  border: 1px solid rgb(248 251 255 / 0.34);
+  border: 1px solid #c9d4e3;
   border-radius: 8px;
-  background: rgb(248 251 255 / 0.08);
-  color: rgb(248 251 255 / 0.78);
+  background: #f7f9fc;
+  color: #5b6f8d;
   font-size: 0.76rem;
   font-weight: 900;
 }
 
 .reset-progress:hover {
-  border-color: #ffd25a;
-  color: #ffd25a;
+  border-color: #7ea7da;
+  color: #2e568d;
 }
 
 .back-to-library {
   min-height: 48px;
-  border: 2px solid rgb(248 251 255 / 0.56);
+  border: 1px solid #9eb9dc;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgb(69 214 255 / 0.2), rgb(255 210 90 / 0.18));
-  color: #f8fbff;
+  background: linear-gradient(180deg, #f3f8ff, #dcecff);
+  color: #2e568d;
   font-weight: 900;
 }
 
 .back-to-library:hover {
-  border-color: #ffd25a;
-  color: #ffd25a;
+  border-color: #7ea7da;
+  color: #22446f;
 }
 
 .game-list {
@@ -414,12 +416,12 @@ a:focus-visible {
 .game-card {
   position: relative;
   display: block;
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid #d7e0ec;
   border-radius: 8px;
   padding: 0;
   min-height: 214px;
-  background: rgb(8 10 18 / 0.96);
-  color: #f8fbff;
+  background: #f8fbff;
+  color: #1f2f46;
   text-align: left;
   overflow: hidden;
   transition:
@@ -430,8 +432,8 @@ a:focus-visible {
 
 .game-card:hover,
 .game-card.is-selected {
-  border-color: rgb(255 255 255 / 0.28);
-  box-shadow: 0 16px 36px rgb(0 0 0 / 0.28);
+  border-color: #98b5db;
+  box-shadow: 0 16px 34px rgb(53 79 114 / 0.14);
   transform: translateY(-1px);
 }
 
@@ -439,7 +441,7 @@ a:focus-visible {
   position: absolute;
   inset: 0;
   display: block;
-  background-color: #0f172a;
+  background-color: #d8e3f1;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -454,34 +456,35 @@ a:focus-visible {
   min-width: 0;
   gap: 5px;
   background:
-    linear-gradient(180deg, transparent, rgb(15 23 42 / 0.88) 18%, rgb(15 23 42 / 0.98));
+    linear-gradient(180deg, transparent, rgb(248 251 255 / 0.8) 20%, rgb(248 251 255 / 0.96) 38%, rgb(248 251 255 / 0.985));
 }
 
 .game-card__content strong {
   overflow: hidden;
   font-size: 1.2rem;
+  color: #203047;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .game-card__description {
-  color: rgb(226 232 240 / 0.88);
+  color: #536781;
   font-size: 0.82rem;
   line-height: 1.3;
 }
 
 .game-card__record {
-  color: #cbd5e1;
+  color: #68809e;
   font-size: 0.74rem;
 }
 
 .game-card__cta {
   justify-self: start;
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid #d4dceb;
   border-radius: 6px;
   padding: 4px 8px;
-  color: #f8fafc;
-  background: rgb(255 255 255 / 0.06);
+  color: #2e568d;
+  background: #f4f8fd;
   font-size: 0.72rem;
 }
 
@@ -498,7 +501,7 @@ a:focus-visible {
   min-height: 0;
   border: 0;
   border-radius: 0;
-  background: #05060b;
+  background: #dbe4ef;
   box-shadow: none;
   overflow: hidden;
 }
@@ -509,7 +512,7 @@ a:focus-visible {
   height: 100%;
   min-height: 0;
   border: 0;
-  background: #05060b;
+  background: #dbe4ef;
 }
 
 .runner__toolbar {
