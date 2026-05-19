@@ -3,38 +3,35 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #080911;
-  color: #f8fbff;
+  background: #faf8ef;
+  color: #776e65;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(90deg, rgb(255 63 99 / 0.12), transparent 26%, rgb(68 215 255 / 0.1)),
-    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 34px),
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 34px),
-    #080911;
+  overflow: hidden;
+  background: #faf8ef;
 }
 
 button {
   min-height: 44px;
-  border: 2px solid rgb(248 251 255 / 0.72);
+  border: 0;
   border-radius: 8px;
   padding: 0 18px;
-  background: rgb(10 14 26 / 0.88);
-  color: #f8fbff;
+  background: #8f7a66;
+  color: #f9f6f2;
   font: inherit;
   font-weight: 900;
   cursor: pointer;
 }
 
 button:focus-visible {
-  outline: 3px solid #f8fbff;
+  outline: 3px solid #776e65;
   outline-offset: 4px;
 }
 
@@ -52,43 +49,36 @@ button:focus-visible {
 .scoreboard {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border: 2px solid rgb(248 251 255 / 0.72);
-  border-radius: 10px;
-  background: rgb(10 14 26 / 0.82);
-  box-shadow: 0 16px 50px rgb(0 0 0 / 0.28);
+  border-radius: 8px;
+  background: #bbada0;
 }
 
 .metric {
   display: grid;
   min-height: 54px;
   place-items: center;
-  border-right: 1px solid rgb(248 251 255 / 0.2);
   padding: 10px;
-}
-
-.metric:last-child {
-  border-right: 0;
 }
 
 .metric span,
 .time-panel span,
 .overlay p,
 .rule-badge {
-  color: #44d7ff;
+  color: #eee4da;
   font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0;
 }
 
 .metric strong {
+  color: #f9f6f2;
   font-size: clamp(1.25rem, 4vw, 2.15rem);
   line-height: 1;
 }
 
 .metric--fever.is-active {
-  background: linear-gradient(135deg, rgb(255 63 99 / 0.34), rgb(255 212 71 / 0.28));
+  background: #f2b179;
   color: #fff8d7;
-  text-shadow: 0 0 14px rgb(255 212 71 / 0.7);
 }
 
 .time-panel {
@@ -96,10 +86,9 @@ button:focus-visible {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  border: 2px solid rgb(248 251 255 / 0.72);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 8px 10px;
-  background: rgb(10 14 26 / 0.82);
+  background: #bbada0;
 }
 
 .time-panel__label {
@@ -109,30 +98,29 @@ button:focus-visible {
 }
 
 .time-panel__label strong {
+  color: #f9f6f2;
   font-size: 1.4rem;
   line-height: 1;
 }
 
 .gauge {
   height: 24px;
-  border: 2px solid rgb(248 251 255 / 0.72);
   border-radius: 8px;
-  background: rgb(8 9 17 / 0.9);
+  background: rgb(238 228 218 / 0.55);
   overflow: hidden;
 }
 
 .gauge__fill {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #58f08b, #ffd447);
-  box-shadow: 0 0 22px rgb(88 240 139 / 0.45);
+  background: linear-gradient(90deg, #7cb36d, #e7c65c);
   transition:
     width 80ms linear,
     background-color 120ms ease;
 }
 
 .gauge__fill.is-low {
-  background: linear-gradient(90deg, #ff3f63, #ffd447);
+  background: linear-gradient(90deg, #d98d76, #e7c65c);
   animation: pulse-low 0.32s steps(2, end) infinite;
 }
 
@@ -146,12 +134,9 @@ button:focus-visible {
     "left center right" 1.2fr
     ". down ." 1fr / 1fr 1fr 1fr;
   gap: 14px;
-  border: 2px solid rgb(248 251 255 / 0.72);
   border-radius: 12px;
   padding: 18px;
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent 36%),
-    rgb(10 14 26 / 0.82);
+  background: #bbada0;
   overflow: hidden;
 }
 
@@ -162,18 +147,12 @@ button:focus-visible {
   align-content: center;
   gap: 5px;
   border-color: color-mix(in srgb, var(--button-color), white 34%);
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.24), transparent 40%),
-    var(--button-color);
+  background: var(--button-color);
   color: var(--button-text);
-  box-shadow:
-    0 18px 50px rgb(0 0 0 / 0.25),
-    0 0 22px color-mix(in srgb, var(--button-color), transparent 56%);
   text-shadow: 0 1px 0 rgb(255 255 255 / 0.24);
   transition:
     transform 90ms ease,
-    filter 90ms ease,
-    box-shadow 90ms ease;
+    filter 90ms ease;
 }
 
 .direction span {
@@ -216,17 +195,11 @@ button:focus-visible {
 }
 
 .direction.is-correct {
-  filter: saturate(1.45) brightness(1.2);
-  box-shadow:
-    0 0 0 4px rgb(248 251 255 / 0.8),
-    0 0 32px rgb(88 240 139 / 0.82);
+  filter: saturate(1.1) brightness(1.06);
 }
 
 .direction.is-wrong {
-  filter: grayscale(0.35) brightness(0.82);
-  box-shadow:
-    0 0 0 4px rgb(255 63 99 / 0.82),
-    0 0 32px rgb(255 63 99 / 0.7);
+  filter: grayscale(0.2) brightness(0.88);
 }
 
 .target-card {
@@ -243,15 +216,14 @@ button:focus-visible {
 .rule-badge {
   min-width: 128px;
   margin: 0;
-  border: 2px solid rgb(68 215 255 / 0.78);
   border-radius: 8px;
   padding: 8px 12px;
-  background: rgb(8 9 17 / 0.86);
+  background: rgb(249 246 242 / 0.9);
+  color: #8f7a66;
 }
 
 .rule-badge.is-trap {
-  border-color: rgb(255 212 71 / 0.9);
-  color: #ffd447;
+  color: #c17d5c;
   animation: trap-flicker 0.5s steps(2, end) infinite;
 }
 
@@ -260,14 +232,11 @@ button:focus-visible {
   width: 100%;
   aspect-ratio: 1;
   place-items: center;
-  border: 8px solid rgb(248 251 255 / 0.92);
+  border: 8px solid rgb(249 246 242 / 0.92);
   border-radius: 999px;
   background:
     linear-gradient(180deg, rgb(255 255 255 / 0.28), transparent 38%),
-    var(--target-color, #ff3f63);
-  box-shadow:
-    0 0 44px color-mix(in srgb, var(--target-glow, #ff3f63), transparent 44%),
-    inset 0 -16px 28px rgb(0 0 0 / 0.16);
+    var(--target-color, #d98d76);
   color: var(--target-text, #fff7fa);
 }
 
@@ -291,10 +260,9 @@ button:focus-visible {
 
 .target-name {
   min-width: 112px;
-  border: 2px solid rgb(248 251 255 / 0.45);
   border-radius: 8px;
   padding: 8px 12px;
-  background: rgb(8 9 17 / 0.78);
+  background: rgb(249 246 242 / 0.9);
   font-size: 1rem;
   line-height: 1;
 }
@@ -305,11 +273,10 @@ button:focus-visible {
   bottom: 12px;
   min-width: min(420px, calc(100% - 36px));
   transform: translateX(-50%);
-  border: 2px solid rgb(248 251 255 / 0.5);
   border-radius: 8px;
   padding: 10px 14px;
-  background: rgb(8 9 17 / 0.84);
-  color: #f8fbff;
+  background: rgb(249 246 242 / 0.94);
+  color: #776e65;
   font-weight: 900;
   text-align: center;
 }
@@ -321,9 +288,8 @@ button:focus-visible {
   place-items: center;
   align-content: center;
   gap: 14px;
-  border: 2px solid rgb(248 251 255 / 0.72);
   border-radius: 10px;
-  background: rgb(8 9 17 / 0.9);
+  background: rgb(249 246 242 / 0.94);
   text-align: center;
   z-index: 2;
 }
@@ -340,19 +306,20 @@ button:focus-visible {
 }
 
 .overlay h1 {
+  color: #776e65;
   font-size: clamp(3rem, 12vw, 6.8rem);
   line-height: 0.9;
 }
 
 .overlay strong {
-  color: #ffd447;
+  color: #8f7a66;
   font-size: 1rem;
 }
 
 .start-button {
   min-width: 156px;
-  background: linear-gradient(135deg, #ff3f63, #ffd447);
-  color: #12070b;
+  background: #8f7a66;
+  color: #f9f6f2;
 }
 
 .shell.is-fever .arena {
@@ -367,7 +334,7 @@ button:focus-visible {
 
 @keyframes trap-flicker {
   50% {
-    color: #ff3f63;
+    color: #d98d76;
   }
 }
 
@@ -388,10 +355,6 @@ button:focus-visible {
 
   .metric:nth-child(2) {
     border-right: 0;
-  }
-
-  .metric:nth-child(-n + 2) {
-    border-bottom: 1px solid rgb(248 251 255 / 0.2);
   }
 
   .time-panel {

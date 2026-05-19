@@ -3,11 +3,11 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #08111d;
-  color: #f8fafc;
+  background: #faf8ef;
+  color: #776e65;
 }
 
 body {
@@ -15,10 +15,7 @@ body {
   min-height: 100vh;
   margin: 0;
   overflow: hidden;
-  background:
-    linear-gradient(90deg, rgb(56 189 248 / 0.1) 0 1px, transparent 1px 48px),
-    linear-gradient(0deg, rgb(244 63 94 / 0.08) 0 1px, transparent 1px 48px),
-    #08111d;
+  background: #faf8ef;
 }
 
 button {
@@ -52,15 +49,15 @@ button {
 
 .topbar p,
 .hud span {
-  color: #38bdf8;
+  color: #bbada0;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
 .topbar h1 {
+  color: #776e65;
   font-size: 2.45rem;
   line-height: 0.95;
-  text-shadow: 0 0 22px rgb(56 189 248 / 0.3);
 }
 
 .actions {
@@ -71,19 +68,18 @@ button {
 .action {
   min-width: 76px;
   min-height: 40px;
-  border: 2px solid #fb7185;
+  border: 0;
   border-radius: 6px;
   padding: 0 16px;
-  background: #111827;
-  color: #f8fafc;
+  background: #eee4da;
+  color: #776e65;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .action--primary {
-  background: #fb7185;
-  color: #111827;
-  box-shadow: 0 0 20px rgb(251 113 133 / 0.25);
+  background: #8f7a66;
+  color: #f9f6f2;
 }
 
 .hud {
@@ -96,13 +92,12 @@ button {
   display: grid;
   min-height: 52px;
   place-items: center;
-  border: 2px solid rgb(148 163 184 / 0.28);
-  border-radius: 8px;
-  background: rgb(15 23 42 / 0.92);
+  border-radius: 6px;
+  background: #bbada0;
 }
 
 .hud strong {
-  color: #fb7185;
+  color: #f9f6f2;
   font-size: 1.15rem;
   line-height: 1;
   white-space: nowrap;
@@ -117,11 +112,9 @@ button {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   grid-template-rows: repeat(5, minmax(0, 1fr));
   gap: 8px;
-  border: 3px solid #38bdf8;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
-  background: rgb(8 17 29 / 0.94);
-  box-shadow: 0 0 28px rgb(56 189 248 / 0.18);
+  background: #bbada0;
 }
 
 .cell {
@@ -129,18 +122,15 @@ button {
   place-items: center;
   min-width: 0;
   min-height: 0;
-  border: 2px solid rgb(148 163 184 / 0.28);
   border-radius: 6px;
-  background: #0f172a;
-  color: #f8fafc;
+  background: #f9f6f2;
+  color: #776e65;
   font-size: clamp(0.66rem, 1.9vmin, 1rem);
   font-weight: 1000;
   letter-spacing: 0;
   transition:
     background 90ms ease,
-    border-color 90ms ease,
     color 90ms ease,
-    box-shadow 90ms ease,
     transform 90ms ease;
 }
 
@@ -171,13 +161,13 @@ button {
 }
 
 .cell__badge--warning {
-  background: #facc15;
-  color: #422006;
+  background: #e7c65c;
+  color: #776e65;
 }
 
 .cell__badge--danger {
-  background: #7f1d1d;
-  color: #ffe4e6;
+  background: #d98d76;
+  color: #f9f6f2;
 }
 
 .cell:disabled {
@@ -185,33 +175,24 @@ button {
 }
 
 .cell.is-warning {
-  border-color: #facc15;
-  background:
-    repeating-linear-gradient(135deg, rgb(250 204 21 / 0.22) 0 8px, transparent 8px 16px),
-    #1f2937;
-  color: #fef3c7;
+  background: #ede0c8;
+  color: #776e65;
 }
 
 .cell.is-active {
-  border-color: #fb7185;
-  background:
-    linear-gradient(90deg, rgb(251 113 133 / 0.38), rgb(248 250 252 / 0.18)),
-    #3f1019;
-  color: #fff1f2;
-  box-shadow: 0 0 18px rgb(251 113 133 / 0.42);
+  background: #d98d76;
+  color: #f9f6f2;
 }
 
 .cell.is-player {
-  border-color: #fb7185;
-  background: #f8fafc;
-  color: #111827;
-  box-shadow: 0 0 24px rgb(251 113 133 / 0.32);
+  background: #7da4d1;
+  color: #f9f6f2;
   transform: translateY(-1px);
 }
 
 .cell.is-danger {
-  background: #fecdd3;
-  color: #450a0a;
+  background: #f2b179;
+  color: #f9f6f2;
 }
 
 .status-panel {
@@ -219,25 +200,20 @@ button {
   align-items: center;
   justify-content: space-between;
   min-height: 36px;
-  border: 2px solid rgb(148 163 184 / 0.24);
   border-radius: 8px;
   padding: 0 12px;
-  background: rgb(15 23 42 / 0.86);
+  background: #f9f6f2;
 }
 
 .status-panel strong {
-  color: #38bdf8;
+  color: #776e65;
   font-size: 0.95rem;
 }
 
 .status-panel span {
-  color: #cbd5e1;
+  color: #8f7a66;
   font-size: 0.8rem;
   font-weight: 800;
-}
-
-.shell[data-phase="game-over"] .status-panel strong {
-  color: #fb7185;
 }
 
 @media (max-width: 560px) {

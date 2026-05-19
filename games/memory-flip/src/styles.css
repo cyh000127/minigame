@@ -3,11 +3,11 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #08111f;
-  color: #f8fafc;
+  background: #faf8ef;
+  color: #776e65;
 }
 
 body {
@@ -15,10 +15,7 @@ body {
   min-height: 100vh;
   margin: 0;
   overflow: hidden;
-  background:
-    linear-gradient(90deg, rgb(20 184 166 / 0.12) 0 1px, transparent 1px 52px),
-    linear-gradient(0deg, rgb(251 191 36 / 0.08) 0 1px, transparent 1px 52px),
-    linear-gradient(135deg, #07111d 0%, #111827 58%, #1f1623 100%);
+  background: #faf8ef;
 }
 
 button {
@@ -52,16 +49,15 @@ button {
 
 .topbar p,
 .hud span {
-  color: #2dd4bf;
+  color: #bbada0;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
 .topbar h1 {
-  color: #f8fafc;
+  color: #776e65;
   font-size: 2.5rem;
   line-height: 0.95;
-  text-shadow: 0 0 22px rgb(45 212 191 / 0.32);
 }
 
 .actions {
@@ -72,20 +68,18 @@ button {
 .action {
   min-width: 76px;
   min-height: 40px;
-  border: 2px solid rgb(248 250 252 / 0.35);
+  border: 0;
   border-radius: 6px;
   padding: 0 16px;
-  background: rgb(15 23 42 / 0.94);
-  color: #f8fafc;
+  background: #eee4da;
+  color: #776e65;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .action--primary {
-  border-color: #f97316;
-  background: #f97316;
-  color: #111827;
-  box-shadow: 0 0 20px rgb(249 115 22 / 0.24);
+  background: #8f7a66;
+  color: #f9f6f2;
 }
 
 .hud {
@@ -98,13 +92,12 @@ button {
   display: grid;
   min-height: 52px;
   place-items: center;
-  border: 2px solid rgb(148 163 184 / 0.26);
-  border-radius: 8px;
-  background: rgb(15 23 42 / 0.9);
+  border-radius: 6px;
+  background: #bbada0;
 }
 
 .hud strong {
-  color: #facc15;
+  color: #f9f6f2;
   font-size: 1.2rem;
   line-height: 1;
   white-space: nowrap;
@@ -119,37 +112,26 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  border: 3px solid #2dd4bf;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
-  background:
-    linear-gradient(135deg, rgb(15 23 42 / 0.98), rgb(30 41 59 / 0.96)),
-    #111827;
-  box-shadow:
-    0 0 28px rgb(45 212 191 / 0.22),
-    inset 0 0 0 1px rgb(248 250 252 / 0.08);
+  background: #bbada0;
 }
 
 .card {
   min-width: 0;
   min-height: 0;
-  border: 2px solid rgb(148 163 184 / 0.28);
+  border: 0;
   border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgb(20 184 166 / 0.12), transparent 44%),
-    #0f172a;
-  color: rgb(226 232 240 / 0.72);
+  background: #8f7a66;
+  color: rgb(249 246 242 / 0.78);
   font-size: 1rem;
   font-weight: 1000;
   letter-spacing: 0;
   text-transform: uppercase;
-  box-shadow: inset 0 0 0 1px rgb(248 250 252 / 0.04);
   transition:
     background 140ms ease,
-    border-color 140ms ease,
     color 140ms ease,
-    transform 140ms ease,
-    box-shadow 140ms ease;
+    transform 140ms ease;
 }
 
 .card:disabled {
@@ -158,25 +140,18 @@ button {
 
 .card.is-face-up,
 .card.is-matched {
-  border-color: #f97316;
-  background:
-    linear-gradient(135deg, #fff7ed, #fed7aa),
-    #fff7ed;
-  color: #111827;
-  box-shadow: 0 0 22px rgb(249 115 22 / 0.26);
+  background: #f2b179;
+  color: #f9f6f2;
   transform: translateY(-1px);
 }
 
 .card.is-selected {
-  border-color: #facc15;
+  background: #e7c65c;
+  color: #776e65;
 }
 
 .card.is-matched {
-  border-color: #2dd4bf;
-  background:
-    linear-gradient(135deg, #ccfbf1, #ecfccb),
-    #ccfbf1;
-  box-shadow: 0 0 24px rgb(45 212 191 / 0.24);
+  background: #7cb36d;
 }
 
 .status-panel {
@@ -184,29 +159,20 @@ button {
   align-items: center;
   justify-content: space-between;
   min-height: 36px;
-  border: 2px solid rgb(148 163 184 / 0.24);
   border-radius: 8px;
   padding: 0 12px;
-  background: rgb(15 23 42 / 0.86);
+  background: #f9f6f2;
 }
 
 .status-panel strong {
-  color: #f97316;
+  color: #776e65;
   font-size: 0.95rem;
 }
 
 .status-panel span {
-  color: #cbd5e1;
+  color: #8f7a66;
   font-size: 0.8rem;
   font-weight: 800;
-}
-
-.shell[data-phase="won"] .status-panel strong {
-  color: #2dd4bf;
-}
-
-.shell[data-phase="game-over"] .status-panel strong {
-  color: #f43f5e;
 }
 
 @media (max-width: 560px) {

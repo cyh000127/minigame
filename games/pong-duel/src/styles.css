@@ -3,11 +3,11 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #071014;
-  color: #f3fbff;
+  background: #faf8ef;
+  color: #776e65;
 }
 
 body {
@@ -15,20 +15,16 @@ body {
   min-height: 100vh;
   margin: 0;
   overflow: hidden;
-  background:
-    linear-gradient(90deg, rgb(34 211 238 / 0.08) 0 1px, transparent 1px 50px),
-    linear-gradient(0deg, rgb(244 114 182 / 0.07) 0 1px, transparent 1px 50px),
-    radial-gradient(circle at 50% 8%, rgb(34 211 238 / 0.13), transparent 330px),
-    #071014;
+  background: #faf8ef;
 }
 
 button {
   min-height: 42px;
-  border: 2px solid #22d3ee;
+  border: 0;
   border-radius: 6px;
   padding: 0 16px;
-  background: #112534;
-  color: #f3fbff;
+  background: #8f7a66;
+  color: #f9f6f2;
   font: inherit;
   font-size: 0.95rem;
   font-weight: 900;
@@ -36,7 +32,7 @@ button {
 }
 
 button:focus-visible {
-  outline: 3px solid #f472b6;
+  outline: 3px solid #776e65;
   outline-offset: 2px;
 }
 
@@ -71,12 +67,13 @@ button:focus-visible {
 
 .brand p,
 .hud span {
-  color: #22d3ee;
+  color: #bbada0;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
 .brand h1 {
+  color: #776e65;
   font-size: 3rem;
   line-height: 0.95;
 }
@@ -97,13 +94,12 @@ button:focus-visible {
   display: grid;
   min-height: 54px;
   place-items: center;
-  border: 2px solid rgb(243 251 255 / 0.44);
-  border-radius: 8px;
-  background: rgb(15 23 42 / 0.92);
+  border-radius: 6px;
+  background: #bbada0;
 }
 
 .hud strong {
-  color: #f472b6;
+  color: #f9f6f2;
   font-size: 1.35rem;
   line-height: 1;
 }
@@ -119,14 +115,10 @@ button:focus-visible {
   position: relative;
   width: min(100%, 780px);
   aspect-ratio: 16 / 10;
-  border: 3px solid #22d3ee;
-  border-radius: 10px;
+  border-radius: 8px;
   background:
-    linear-gradient(90deg, rgb(243 251 255 / 0.06) 0 1px, transparent 1px 8.333%),
-    #081723;
-  box-shadow:
-    0 0 0 2px rgb(243 251 255 / 0.08) inset,
-    0 0 28px rgb(34 211 238 / 0.18);
+    linear-gradient(90deg, rgb(249 246 242 / 0.15) 0 1px, transparent 1px 8.333%),
+    #bbada0;
   overflow: hidden;
 }
 
@@ -138,7 +130,7 @@ button:focus-visible {
   width: 4px;
   background: repeating-linear-gradient(
     to bottom,
-    rgb(243 251 255 / 0.5) 0 14px,
+    rgb(249 246 242 / 0.7) 0 14px,
     transparent 14px 28px
   );
   transform: translateX(-50%);
@@ -148,8 +140,7 @@ button:focus-visible {
   position: absolute;
   width: 2.2%;
   border-radius: 999px;
-  background: #f3fbff;
-  box-shadow: 0 0 18px rgb(243 251 255 / 0.5);
+  background: #f9f6f2;
 }
 
 .paddle--player {
@@ -164,8 +155,7 @@ button:focus-visible {
   position: absolute;
   aspect-ratio: 1;
   border-radius: 999px;
-  background: #f472b6;
-  box-shadow: 0 0 20px rgb(244 114 182 / 0.58);
+  background: #d98d76;
   transform: translate(-50%, -50%);
 }
 
@@ -177,11 +167,9 @@ button:focus-visible {
   min-width: min(74%, 340px);
   min-height: 110px;
   place-items: center;
-  border: 2px solid #f472b6;
   border-radius: 8px;
   padding: 16px;
-  background: rgb(7 16 20 / 0.88);
-  box-shadow: 0 0 24px rgb(244 114 182 / 0.24);
+  background: rgb(249 246 242 / 0.94);
   text-align: center;
   transform: translate(-50%, -50%);
 }
@@ -191,19 +179,15 @@ button:focus-visible {
 }
 
 .overlay strong {
-  color: #f472b6;
+  color: #776e65;
   font-size: 2rem;
   line-height: 1;
 }
 
 .overlay span {
-  color: #f3fbff;
+  color: #8f7a66;
   font-size: 0.9rem;
   font-weight: 900;
-}
-
-.shell[data-phase="game-over"] .arena {
-  border-color: #f472b6;
 }
 
 @media (max-width: 700px) {
