@@ -46,6 +46,8 @@ corepack pnpm run dev
 
 기본 주소는 `http://127.0.0.1:5173`입니다.
 
+배포 주소는 [https://cyh000127.github.io/minigame/](https://cyh000127.github.io/minigame/) 입니다.
+
 ## 게임
 
 - [Quoridor](games/quoridor/README.md)
