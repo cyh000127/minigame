@@ -17,8 +17,15 @@ interface MiniGameLifecycleMessage {
 }
 
 const BEST_SCORE_KEY = 'minigame:2048:best-score';
+const SAVE_STATE_KEY = 'minigame:2048:save-state';
 const SWIPE_THRESHOLD_PX = 32;
 const TARGET_TILES = [1024, 2048, 4096] as const;
+
+interface SavedSession {
+  readonly state: GameState;
+  readonly undoState: GameState | null;
+  readonly targetTile: number;
+}
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -88,11 +95,14 @@ const overlayTitle = mustQuery<HTMLElement>('[data-overlay-title]');
 const continueButton = mustQuery<HTMLButtonElement>('[data-continue]');
 const restartButton = mustQuery<HTMLButtonElement>('[data-restart]');
 
-let targetTile = Number.parseInt(targetSelect.value, 10);
-let state = createGameState(Math.random, loadBestScore(), targetTile);
-let undoState: GameState | null = null;
+const savedSession = loadSavedSession(loadBestScore());
+let targetTile = savedSession?.targetTile ?? Number.parseInt(targetSelect.value, 10);
+let state = savedSession?.state ?? createGameState(Math.random, loadBestScore(), targetTile);
+let undoState: GameState | null = savedSession?.undoState ?? null;
 let paused = false;
 let touchStart: { readonly x: number; readonly y: number } | null = null;
+
+targetSelect.value = targetTile.toString();
 
 newGameButton.addEventListener('click', restartGame);
 undoButton.addEventListener('click', undoMove);
@@ -234,6 +244,7 @@ function render(): void {
   undoButton.disabled = paused || !undoState || state.status !== 'playing';
   boardElement.innerHTML = Array.from({ length: CELL_COUNT }, (_, index) => renderCell(index)).join('');
   renderOverlay();
+  persistSession();
 }
 
 function renderCell(index: number): string {
@@ -319,6 +330,123 @@ function loadBestScore(): number {
 
 function saveBestScore(score: number): void {
   window.localStorage.setItem(BEST_SCORE_KEY, score.toString());
+}
+
+function persistSession(): void {
+  saveBestScore(state.bestScore);
+
+  if (state.status === 'game-over') {
+    window.localStorage.removeItem(SAVE_STATE_KEY);
+    return;
+  }
+
+  const session: SavedSession = {
+    state,
+    undoState,
+    targetTile,
+  };
+
+  window.localStorage.setItem(SAVE_STATE_KEY, JSON.stringify(session));
+}
+
+function loadSavedSession(bestScore: number): SavedSession | null {
+  const rawValue = window.localStorage.getItem(SAVE_STATE_KEY);
+
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as Partial<SavedSession>;
+
+    if (!isValidSavedSession(parsed)) {
+      return null;
+    }
+
+    const normalizedBestScore = Math.max(
+      bestScore,
+      parsed.state.bestScore,
+      parsed.undoState?.bestScore ?? 0,
+    );
+
+    return {
+      state: {
+        ...parsed.state,
+        bestScore: normalizedBestScore,
+      },
+      undoState: parsed.undoState
+        ? {
+            ...parsed.undoState,
+            bestScore: normalizedBestScore,
+          }
+        : null,
+      targetTile: parsed.targetTile,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isValidSavedSession(session: Partial<SavedSession>): session is SavedSession {
+  if (!isValidTargetTile(session.targetTile)) {
+    return false;
+  }
+
+  if (!isValidGameState(session.state)) {
+    return false;
+  }
+
+  return session.undoState === null || session.undoState === undefined || isValidGameState(session.undoState);
+}
+
+function isValidGameState(value: unknown): value is GameState {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<GameState>;
+
+  if (!Array.isArray(candidate.board) || candidate.board.length !== CELL_COUNT) {
+    return false;
+  }
+
+  if (!candidate.board.every((cell) => Number.isInteger(cell) && cell >= 0)) {
+    return false;
+  }
+
+  if (typeof candidate.score !== 'number' || !Number.isInteger(candidate.score) || candidate.score < 0) {
+    return false;
+  }
+
+  if (
+    typeof candidate.bestScore !== 'number'
+    || !Number.isInteger(candidate.bestScore)
+    || candidate.bestScore < 0
+  ) {
+    return false;
+  }
+
+  if (
+    typeof candidate.moveCount !== 'number'
+    || !Number.isInteger(candidate.moveCount)
+    || candidate.moveCount < 0
+  ) {
+    return false;
+  }
+
+  if (candidate.hasWon !== true && candidate.hasWon !== false) {
+    return false;
+  }
+
+  if (candidate.status !== 'playing' && candidate.status !== 'won' && candidate.status !== 'game-over') {
+    return false;
+  }
+
+  return candidate.targetTile === undefined || isValidTargetTile(candidate.targetTile);
+}
+
+function isValidTargetTile(value: unknown): value is (typeof TARGET_TILES)[number] {
+  return typeof value === 'number' && TARGET_TILES.includes(value as (typeof TARGET_TILES)[number]);
 }
 
 function mustQuery<TElement extends Element>(selector: string): TElement {
