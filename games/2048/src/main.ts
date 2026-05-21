@@ -25,6 +25,7 @@ interface SavedSession {
   readonly state: GameState;
   readonly undoState: GameState | null;
   readonly targetTile: number;
+  readonly savedAt: number;
 }
 
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -68,6 +69,17 @@ appRoot.innerHTML = `
       </div>
     </section>
 
+    <section class="resume-banner" data-resume-banner hidden>
+      <div>
+        <strong data-resume-title>Saved session restored</strong>
+        <p data-resume-detail>Your board is ready to continue.</p>
+      </div>
+      <div class="resume-banner__actions">
+        <button data-resume-fresh type="button">New Game</button>
+        <button data-resume-dismiss type="button">Dismiss</button>
+      </div>
+    </section>
+
     <section class="board-wrap">
       <div class="board" data-board aria-label="2048 board" role="grid"></div>
       <div class="overlay" data-overlay hidden>
@@ -89,6 +101,11 @@ const boardElement = mustQuery<HTMLElement>('[data-board]');
 const targetSelect = mustQuery<HTMLSelectElement>('[data-target]');
 const undoButton = mustQuery<HTMLButtonElement>('[data-undo]');
 const newGameButton = mustQuery<HTMLButtonElement>('[data-new-game]');
+const resumeBanner = mustQuery<HTMLElement>('[data-resume-banner]');
+const resumeTitle = mustQuery<HTMLElement>('[data-resume-title]');
+const resumeDetail = mustQuery<HTMLElement>('[data-resume-detail]');
+const resumeFreshButton = mustQuery<HTMLButtonElement>('[data-resume-fresh]');
+const resumeDismissButton = mustQuery<HTMLButtonElement>('[data-resume-dismiss]');
 const overlayElement = mustQuery<HTMLElement>('[data-overlay]');
 const overlayKicker = mustQuery<HTMLElement>('[data-overlay-kicker]');
 const overlayTitle = mustQuery<HTMLElement>('[data-overlay-title]');
@@ -101,11 +118,21 @@ let state = savedSession?.state ?? createGameState(Math.random, loadBestScore(),
 let undoState: GameState | null = savedSession?.undoState ?? null;
 let paused = false;
 let touchStart: { readonly x: number; readonly y: number } | null = null;
+let restoredSessionInfo: { readonly savedAt: number; readonly moveCount: number; readonly score: number } | null =
+  savedSession
+    ? {
+        savedAt: savedSession.savedAt,
+        moveCount: savedSession.state.moveCount,
+        score: savedSession.state.score,
+      }
+    : null;
 
 targetSelect.value = targetTile.toString();
 
 newGameButton.addEventListener('click', restartGame);
 undoButton.addEventListener('click', undoMove);
+resumeFreshButton.addEventListener('click', restartGame);
+resumeDismissButton.addEventListener('click', dismissResumeBanner);
 targetSelect.addEventListener('change', () => {
   targetTile = Number.parseInt(targetSelect.value, 10);
   restartGame();
@@ -202,6 +229,7 @@ render();
 function restartGame(): void {
   state = createGameState(Math.random, state.bestScore, targetTile);
   undoState = null;
+  restoredSessionInfo = null;
   paused = false;
   render();
 }
@@ -220,6 +248,7 @@ function move(direction: Direction): void {
 
   undoState = previousState;
   state = nextState;
+  restoredSessionInfo = null;
   saveBestScore(state.bestScore);
   render();
 }
@@ -234,6 +263,7 @@ function undoMove(): void {
     bestScore: state.bestScore,
   };
   undoState = null;
+  restoredSessionInfo = null;
   render();
 }
 
@@ -243,6 +273,7 @@ function render(): void {
   bestElement.textContent = state.bestScore.toString();
   undoButton.disabled = paused || !undoState || state.status !== 'playing';
   boardElement.innerHTML = Array.from({ length: CELL_COUNT }, (_, index) => renderCell(index)).join('');
+  renderResumeBanner();
   renderOverlay();
   persistSession();
 }
@@ -292,6 +323,26 @@ function renderOverlay(): void {
     overlayKicker.textContent = 'GAME OVER';
     overlayTitle.textContent = '더 이상 움직일 수 없습니다';
   }
+}
+
+function renderResumeBanner(): void {
+  if (!restoredSessionInfo) {
+    resumeBanner.hidden = true;
+    return;
+  }
+
+  const savedDate = new Date(restoredSessionInfo.savedAt);
+  const timeLabel = Number.isNaN(savedDate.getTime())
+    ? 'recently'
+    : savedDate.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+  resumeTitle.textContent = '저장된 판을 이어서 플레이 중입니다';
+  resumeDetail.textContent =
+    `${timeLabel} 저장 · 점수 ${restoredSessionInfo.score} · 이동 ${restoredSessionInfo.moveCount}회`;
+  resumeBanner.hidden = false;
 }
 
 function getDirectionFromKey(key: string): Direction | null {
@@ -344,6 +395,7 @@ function persistSession(): void {
     state,
     undoState,
     targetTile,
+    savedAt: Date.now(),
   };
 
   window.localStorage.setItem(SAVE_STATE_KEY, JSON.stringify(session));
@@ -381,6 +433,7 @@ function loadSavedSession(bestScore: number): SavedSession | null {
           }
         : null,
       targetTile: parsed.targetTile,
+      savedAt: parsed.savedAt,
     };
   } catch {
     return null;
@@ -389,6 +442,10 @@ function loadSavedSession(bestScore: number): SavedSession | null {
 
 function isValidSavedSession(session: Partial<SavedSession>): session is SavedSession {
   if (!isValidTargetTile(session.targetTile)) {
+    return false;
+  }
+
+  if (typeof session.savedAt !== 'number' || !Number.isFinite(session.savedAt) || session.savedAt <= 0) {
     return false;
   }
 
@@ -447,6 +504,11 @@ function isValidGameState(value: unknown): value is GameState {
 
 function isValidTargetTile(value: unknown): value is (typeof TARGET_TILES)[number] {
   return typeof value === 'number' && TARGET_TILES.includes(value as (typeof TARGET_TILES)[number]);
+}
+
+function dismissResumeBanner(): void {
+  restoredSessionInfo = null;
+  render();
 }
 
 function mustQuery<TElement extends Element>(selector: string): TElement {

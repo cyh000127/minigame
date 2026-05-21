@@ -116,6 +116,57 @@ button[hidden] {
   margin: 0;
 }
 
+.resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #ede0c8;
+}
+
+.resume-banner[hidden] {
+  display: none;
+}
+
+.resume-banner strong,
+.resume-banner p {
+  margin: 0;
+}
+
+.resume-banner strong {
+  color: #776e65;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.resume-banner p {
+  color: #8f7a66;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.resume-banner__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.resume-banner__actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 0.92rem;
+}
+
+.resume-banner__actions button:first-child {
+  background: #8f7a66;
+}
+
+.resume-banner__actions button:last-child {
+  background: #bbada0;
+}
+
 .action-row__controls {
   display: flex;
   align-items: center;
@@ -326,7 +377,8 @@ button[hidden] {
   }
 
   .hero,
-  .action-row {
+  .action-row,
+  .resume-banner {
     align-items: stretch;
     flex-direction: column;
   }
